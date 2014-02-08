@@ -1,0 +1,177 @@
+//--------------------------------------------------------------------------------------------------
+//= SsbAllCharMatch.hsp
+//--------------------------------------------------------------------------------------------------
+//	モジュールをインクルード
+//--------------------------------------------------------------------------------------------------
+#module _SsbAllCharMatch_
+
+	//----------------------------------------------------------------------------------------------
+	//= 指定したウィンドウID上でpgetする
+	//----------------------------------------------------------------------------------------------
+		#deffunc GetPixelOnID int _id, int _x, int _y
+			GselMem = ginfo_sel
+			gsel _id
+				pget _x, _y
+				r = ginfo_r
+				g = ginfo_g
+				b = ginfo_b
+			gsel GselMem
+			color r, g, b
+		return
+
+	//----------------------------------------------------------------------------------------------
+	//= 全要素を描画
+	//----------------------------------------------------------------------------------------------
+		#deffunc DrawAllGraphic
+			redraw 0
+
+			//背景描画
+			DrawBackground
+
+			//キャラアイコン描画
+			posX = 0, WINDOW_SIZE_W@-CHARACTER_ICON_SIZE_W@*2
+			y = WINDOW_SIZE_H@/2-CHARACTER_ICON_SIZE_H@*CHARACTER_NUMBER@/4
+			posY = y, y
+			repeat 2
+				pos posX(cnt), posY(cnt)
+				DrawCharacterIcon cnt
+			loop
+
+			//ネームプレート描画
+			if( GameModeFlag@ == 0 ){
+				n = 2
+			} else {
+				n = 4
+			}
+			repeat n
+				pos NamePlateLayout@(0, GameModeFlag@, cnt), NamePlateLayout@(1, GameModeFlag@, cnt)
+				DrawNamePlate cnt
+			loop
+
+			//VSロゴ描画
+			w = WINDOW_SIZE_W@-(NAME_PLATE_SIZE_W@*2)-(CHARACTER_ICON_SIZE_W@*2)
+			h = NAME_PLATE_SIZE_H@
+			x = WINDOW_SIZE_W@/2-w/2
+			y = 0
+			alCreateImage 0, w, h
+			alColor 255, 255, 255
+			alFont SYSTEM_FONT_NAME@, SYSTEM_FONT_SIZE@, SYSTEM_FONT_STYLE@
+			alDrawText "VS", 0, 0, w, h, 1, 1
+			alCopyImageToScreen 0, SCR_MAIN@, x, y, w, h
+
+			//モード描画
+			w = MODECHANGE_CLICK_AREA_W@
+			h = NAME_PLATE_SIZE_H@
+			x = WINDOW_SIZE_W@/2-w/2
+			y = WINDOW_SIZE_H@-h
+			alCreateImage 0, w, h
+			alColor 255, 255, 255
+			alFont SYSTEM_FONT_NAME@, SYSTEM_FONT_SIZE@, SYSTEM_FONT_STYLE@
+			alDrawText ""+GameModeName@(GameModeFlag@), 0, 0, w, h, 1, 1
+			alCopyImageToScreen 0, SCR_MAIN@, x, y, w, h
+			;マウス当たり判定用バッファへ描画
+			GselMem = ginfo_sel
+			gsel SCR_MOUSE_COLLISION@
+				color 128
+				boxf x, y, x+w-1, y+h-1
+			gsel GselMem
+
+			//オブジェクト範囲
+			w = OBJECT_BOX_SIZE_W@
+			h = OBJECT_BOX_SIZE_H@
+			x = WINDOW_SIZE_W@/2-w/2
+			y = WINDOW_SIZE_H@/2-h/2
+			;光源
+			syscolor 20:	boxf x-2, y-2, x+w+1, y+h+1
+			;影
+			syscolor 21:	boxf x, y, x+w+1, y+h+1
+			syscolor 16:	boxf x, y, x+w, y+h
+			;表面
+			syscolor 15:	boxf x, y, x+w-1, y+h-1
+			;プレイヤーネーム添字
+			baseX = OBJECT_BOX_POS_X@
+			baseY = OBJECT_BOX_POS_Y@
+			s = 4	//セパレータ
+			w = OBJECT_BOX_SIZE_W@/PLAYER_MAX@-s*2
+			h = 24
+			x = baseX+s*2+w/2-8
+			y = baseY+(OBJECT_BOX_SIZE_H@/2)-128/2
+			objsize w, h
+			color
+			font NAME_PLATE_FONT_NAME@, NAME_PLATE_FONT_SIZE@, NAME_PLATE_FONT_STYLE@
+			repeat PLAYER_MAX@
+				pos x+(w+s)*cnt, y
+				mes ""+(cnt+1)+"P"
+			loop
+
+			redraw 1
+		return
+
+	//----------------------------------------------------------------------------------------------
+	//= 背景描画
+	//----------------------------------------------------------------------------------------------
+		#deffunc DrawBackground
+			gmode 0, BG_SIZE_W@, BG_SIZE_H@
+			xMax = WINDOW_SIZE_W@/BG_SIZE_W@+1
+			yMax = WINDOW_SIZE_H@/BG_SIZE_H@+1
+			for x, 0, xMax
+				for y, 0, yMax
+					pos x*BG_SIZE_W@, y*BG_SIZE_H@
+					gcopy SCR_BG@
+				next
+			next
+		return
+
+	//----------------------------------------------------------------------------------------------
+	//= キャラクターアイコン描画
+	//----------------------------------------------------------------------------------------------
+		#deffunc DrawCharacterIcon int _p
+			x	= ginfo_cx+CHARACTER_ICON_SIZE_W@	//基本座標が左上なのに対し、ルイージが右列であるため
+			y	= ginfo_cy
+			id	= SCR_CHARACTER_ICON@
+			w	= CHARACTER_ICON_SIZE_W@
+			h	= CHARACTER_ICON_SIZE_H@
+			n	= CHARACTER_NUMBER@
+
+			gmode 0, w, h
+			for i, 0, n
+				//左列へ移行
+				if( i == n/2 ){
+					x -= w
+					y -= h*(n/2)
+				}
+				f = CharacterFlag@(_p, i)
+				pos x, y
+				gcopy id, w*f, i*h
+				//マウス当たり判定用バッファへ描画
+				GselMem = ginfo_sel
+				gsel SCR_MOUSE_COLLISION@
+					color 255, _p, i
+					boxf x, y, x+w-1, y+h-1
+				gsel GselMem
+				//改行
+				y += h
+			next
+		return
+
+	//----------------------------------------------------------------------------------------------
+	//= ネームプレートを描画
+	//----------------------------------------------------------------------------------------------
+		#deffunc DrawNamePlate int _p
+			x	= ginfo_cx
+			y	= ginfo_cy
+			w	= NAME_PLATE_SIZE_W@
+			h	= NAME_PLATE_SIZE_H@
+
+			gmode 2, w, h
+			pos x, y
+			gcopy SCR_NAME_PLATE@, 0, h*_p
+
+			alCreateImage 0, w, h
+			alColor 255, 255, 255
+			alFont NAME_PLATE_FONT_NAME@, NAME_PLATE_FONT_SIZE@, NAME_PLATE_FONT_STYLE@
+			alDrawText ""+PlayerName@(_p), 0, 0, w, h, 1, 1
+			alCopyImageToScreen 0, SCR_MAIN@, x, y, w, h
+		return
+
+#global

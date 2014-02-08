@@ -1,0 +1,231 @@
+//--------------------------------------------------------------------------------------------------
+//= subroutine.hsp
+//--------------------------------------------------------------------------------------------------
+//	各種サブルーチン
+//--------------------------------------------------------------------------------------------------
+
+	//----------------------------------------------------------------------------------------------
+	//= 終了処理
+	//----------------------------------------------------------------------------------------------
+		*__End
+			dialog "終了しますか？", 2, ""+PROGRAM_NAME+" "+PROGRAM_VERSION
+			if(stat == 6){
+				end
+			}
+		return
+
+	//----------------------------------------------------------------------------------------------
+	//= 画面がクリックされた時
+	//----------------------------------------------------------------------------------------------
+		*__OnClick
+			stick Key, 256+512
+			if Key = 256 {
+				if( mousex < WINDOW_SIZE_W )&&( mousey < WINDOW_SIZE_H ){
+					GetPixelOnID SCR_MOUSE_COLLISION, mousex, mousey
+					result = ginfo_r
+					//モード切り替え
+					if( result == 128 ){
+						GameModeFlag ^= 1
+						//入力欄 有効/無効化
+						objenable PlayerNameInputObjectID(2), GameModeFlag
+						objenable PlayerNameInputObjectID(3), GameModeFlag
+						//再描画
+						DrawAllGraphic
+					}
+					//キャラアイコンを切り替え
+					if( result == 255 ){
+						player = ginfo_g
+						chara = ginfo_b
+						CharacterFlag(player, chara) ^= 1
+						//再描画
+						DrawAllGraphic
+					}
+				}
+			}
+		return
+
+	//----------------------------------------------------------------------------------------------
+	//= オブジェクト初期化
+	//----------------------------------------------------------------------------------------------
+		*__ObjectInit
+			baseX = OBJECT_BOX_POS_X
+			baseY = OBJECT_BOX_POS_Y
+			s = 4	//セパレータ
+
+			//プレイヤーネーム入力欄
+			w = OBJECT_BOX_SIZE_W/PLAYER_MAX-s*2
+			h = 24
+			x = baseX+s*2
+			y = baseY+(OBJECT_BOX_SIZE_H/2)-(128/2)+h
+			objsize w, h
+			repeat PLAYER_MAX
+				pos x+(w+s)*cnt, y
+				input PlayerName(cnt)
+				PlayerNameInputObjectID(cnt) = stat
+				PlayerNameInputObjectHandle(cnt) = objinfo(stat, 2)
+			loop
+			objenable PlayerNameInputObjectID(2), GameModeFlag
+			objenable PlayerNameInputObjectID(3), GameModeFlag
+
+			//キャラランダム
+			x = (baseX+OBJECT_BOX_SIZE_W/2)-360/2
+			y = ginfo_cy+s*4
+			;input
+			pos x+0, y
+			objsize 40, 24
+			CharacterRandomNumber = CHARACTER_NUMBER
+			input CharacterRandomNumber
+			CharacterRandomNumberInputObjectID = stat
+			CharacterRandomNumberInputObjectHandle = objinfo(stat, 2)
+			winobj "msctls_updown32", "", , $50000012 | UDS_ALIGNRIGHT
+			hUpdown = objinfo(stat, 2)
+			sendmsg hUpdown, $465, , MAKELONG(12, 1)	;最小/最大値指定
+			;button
+			pos x+40+s, y
+			objsize 128, 24
+			button gosub "キャラランダム", *__CharacterRandomSelect
+			;chkbox
+			pos x+40+s+128+s, y
+			objsize 192, 24
+			chkbox "キャラかぶりなし(6キャラ以下の時)", NotSameCharacterFlag
+			NotSameCharacterCheckboxObjectID = stat
+			;イベントが起きるため後回し
+			objprm CharacterRandomNumberInputObjectID, CHARACTER_NUMBER
+
+
+			//常に最前面/コピー
+			x = (baseX+OBJECT_BOX_SIZE_W/2)-288/2
+			y = ginfo_cy+s*4
+			;常に最前面
+			pos x, y
+			objsize 144, 24
+			chkbox "常に最前面に表示する", AlwaysOnTopFlag
+			AlwaysOnTopCheckBoxObjectID = stat
+			AlwaysOnTopCheckBoxObjectHandle = objinfo(stat, 2)
+			;コピー
+			pos x+144+s, y
+			button gosub "クリップボードにコピー", *__SetClipBoard
+		return
+
+	//----------------------------------------------------------------------------------------------
+	//= オブジェクトの内容が変更された時
+	//----------------------------------------------------------------------------------------------
+		*__ObjectValueChange
+			//名前が変更された
+			dupptr hnd, varptr(PlayerNameInputObjectHandle), 4*4, 4
+			if( lparam == hnd(0) )||( lparam == hnd(1) )||( lparam == hnd(2) )||( lparam == hnd(3) ){
+				if( HIWORD(wParam) == EN_CHANGE ){
+					DrawAllGraphic
+				}
+			}
+
+			//ランダムキャラ数が変更された
+			if( lparam == CharacterRandomNumberInputObjectHandle ){
+				if( HIWORD(wParam) == EN_CHANGE ){
+					if( CharacterRandomNumber > 6 ){
+						objenable NotSameCharacterCheckboxObjectID, 0
+					} else {
+						objenable NotSameCharacterCheckboxObjectID, 1
+					}
+				}
+			}
+
+			//常に最前面に表示
+			if( lparam == AlwaysOnTopCheckBoxObjectHandle ){
+				if( HIWORD(wParam) == BN_CLICKED ){
+					//数値が変わる前にイベントが実行されるため逆にする
+					if( AlwaysOnTopFlag == FALSE ){
+						gsel SCR_MAIN, 2
+					} else {
+						gsel SCR_MAIN, 1
+					}
+				}
+			}
+		return
+
+	//----------------------------------------------------------------------------------------------
+	//= キャラランダム
+	//----------------------------------------------------------------------------------------------
+		*__CharacterRandomSelect
+			//不正な数値の場合はリストア
+			CharacterRandomNumber = limit(CharacterRandomNumber, 1, CHARACTER_NUMBER)
+			objprm CharacterRandomNumberInputObjectID, CharacterRandomNumber
+			//ランダム開始
+			if CharacterRandomNumber == CHARACTER_NUMBER {
+				dim CharacterFlag, 2, CHARACTER_NUMBER
+			} else {
+				//リセット
+				for i, 0, 2
+					for j, 0, CHARACTER_NUMBER
+						CharacterFlag(i, j) = TRUE
+					next
+				next
+				//1pランダム
+				i = 0
+				repeat
+					tmp = rnd(CHARACTER_NUMBER)
+					if( CharacterFlag(0, tmp) == TRUE ){
+						CharacterFlag(0, tmp) == FALSE
+						i++
+					}
+					if( i == CharacterRandomNumber ){
+						break
+					}
+				loop
+				//2pランダム
+				i = 0
+				repeat
+					tmp = rnd(CHARACTER_NUMBER)
+					f = FALSE
+					if( CharacterFlag(1, tmp) == TRUE ){
+						//キャラかぶりなしかどうか
+						if( CharacterRandomNumber <= 6 )&&( NotSameCharacterFlag == TRUE ){
+							if( CharacterFlag(0, tmp) == TRUE ){
+								f = TRUE
+							}
+						} else {
+							f = TRUE
+						}
+					}
+					if( f == TRUE ){
+						CharacterFlag(1, tmp) == FALSE
+						i++
+					}
+					if( i == CharacterRandomNumber ){
+						break
+					}
+				loop
+			}
+			//再描画
+			DrawAllGraphic
+		return
+
+	//----------------------------------------------------------------------------------------------
+	//= クリップボードにコピー
+	//----------------------------------------------------------------------------------------------
+		*__SetClipBoard
+			//データ整形
+			put = ""
+			p = 1
+			for i, 0, 2
+				if( GameModeFlag == 0 ){
+					put += "【"+p+"P】"
+					p++
+				} else {
+					put += "【"+p+"P&"+(p+1)+"P】"
+					p += 2
+				}
+				for j, 0, CHARACTER_NUMBER
+					if( CharacterFlag(i, j) == FALSE ){
+						put += " "+CharacterName(j)
+					}
+				next
+				if( i == 0 ){ put += "\n" }
+			next
+			//テキスト描画
+			color 255,255,255
+			pos WINDOW_SIZE_W/2, WINDOW_SIZE_H-NAME_PLATE_SIZE_H-64
+			mes "コピーしました。"
+			//クリップボードにセット
+			clipset ""+put
+		return
