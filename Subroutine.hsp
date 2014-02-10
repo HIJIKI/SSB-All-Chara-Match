@@ -92,55 +92,12 @@
 			;イベントが起きるため後回し
 			objprm CharacterRandomNumberInputObjectID, CHARACTER_NUMBER
 
-
-			//常に最前面/コピー
-			x = (baseX+OBJECT_BOX_SIZE_W/2)-288/2
+			//クリップボード
+			x = (baseX+OBJECT_BOX_SIZE_W/2)-144/2
 			y = ginfo_cy+s*4
-			;常に最前面
 			pos x, y
 			objsize 144, 24
-			chkbox "常に最前面に表示する", AlwaysOnTopFlag
-			AlwaysOnTopCheckBoxObjectID = stat
-			AlwaysOnTopCheckBoxObjectHandle = objinfo(stat, 2)
-			;コピー
-			pos x+144+s, y
 			button gosub "クリップボードにコピー", *__SetClipBoard
-		return
-
-	//----------------------------------------------------------------------------------------------
-	//= オブジェクトの内容が変更された時
-	//----------------------------------------------------------------------------------------------
-		*__ObjectValueChange
-			//名前が変更された
-			dupptr hnd, varptr(PlayerNameInputObjectHandle), 4*4, 4
-			if( lparam == hnd(0) )||( lparam == hnd(1) )||( lparam == hnd(2) )||( lparam == hnd(3) ){
-				if( HIWORD(wParam) == EN_CHANGE ){
-					DrawAllGraphic
-				}
-			}
-
-			//ランダムキャラ数が変更された
-			if( lparam == CharacterRandomNumberInputObjectHandle ){
-				if( HIWORD(wParam) == EN_CHANGE ){
-					if( CharacterRandomNumber > 6 ){
-						objenable NotSameCharacterCheckboxObjectID, 0
-					} else {
-						objenable NotSameCharacterCheckboxObjectID, 1
-					}
-				}
-			}
-
-			//常に最前面に表示
-			if( lparam == AlwaysOnTopCheckBoxObjectHandle ){
-				if( HIWORD(wParam) == BN_CLICKED ){
-					//数値が変わる前にイベントが実行されるため逆にする
-					if( AlwaysOnTopFlag == FALSE ){
-						gsel SCR_MAIN, 2
-					} else {
-						gsel SCR_MAIN, 1
-					}
-				}
-			}
 		return
 
 	//----------------------------------------------------------------------------------------------
@@ -228,4 +185,97 @@
 			mes "コピーしました。"
 			//クリップボードにセット
 			clipset ""+put
+		return
+
+	//----------------------------------------------------------------------------------------------
+	//= メニューバーを作成
+	//----------------------------------------------------------------------------------------------
+		*__CreateMenubar
+			//[ファイル]内項目
+			newmenu SubmenuHandle(0), 1
+			addmenu SubmenuHandle(0), "キャラセットを初期化(&D)", MENU_INITCHARASET
+			addmenu SubmenuHandle(0), "キャラセットを開く(&O)", MENU_OPENCHARASET
+			addmenu SubmenuHandle(0), "キャラセットを保存(&S)", MENU_SAVECHARASET
+			addmenu SubmenuHandle(0), "", 0, $800
+			addmenu SubmenuHandle(0), "終了(&X)", MENU_EXIT
+
+			//[オプション]内項目
+			newmenu SubmenuHandle(1), 1
+			if( AlwaysOnTopFlag = TRUE ){
+				addmenu SubmenuHandle(1), "常に最前面に表示", MENU_ALWAYSONTOP, 0x8
+			} else {
+				addmenu SubmenuHandle(1), "常に最前面に表示", MENU_ALWAYSONTOP
+			}
+
+			//[ヘルプ]内項目
+			newmenu SubmenuHandle(2), 1
+			addmenu SubmenuHandle(2), ""+PROGRAM_NAME+" について", MENU_VERSION
+
+			//メニューバー
+			newmenu MenubarHandle, 0
+			addmenu MenubarHandle, "ファイル(&F)", SubmenuHandle(0), $10
+			addmenu MenubarHandle, "オプション(&O)", SubmenuHandle(1), $10
+			addmenu MenubarHandle, "ヘルプ(&H)", SubmenuHandle(2), $10
+
+			//メニューバーをウィンドウに反映
+			applymenu MenubarHandle
+		return
+
+	//----------------------------------------------------------------------------------------------
+	//= オンコマンド
+	//----------------------------------------------------------------------------------------------
+		*__OnCommand
+			//メニューバーが操作された
+			if( lparam == 0 ){
+				id = LOWORD(wparam)
+				//終了
+				if( id == MENU_EXIT ){
+					gosub *__End
+				}
+				//常に最前面に表示
+				if( id == MENU_ALWAYSONTOP ){
+					AlwaysOnTopFlag ^= 1
+					if( AlwaysOnTopFlag == TRUE ){
+						gsel SCR_MAIN, 2
+					} else {
+						gsel SCR_MAIN, 1
+					}
+					//チェックマークを更新するためメニューバー項目を再構築
+					gosub *__CreateMenubar
+				}
+				//バージョン情報
+				if( id == MENU_VERSION ){
+					gosub *__Version
+				}
+				return
+			}
+
+			//名前が変更された
+			dupptr hnd, varptr(PlayerNameInputObjectHandle), 4*4, 4
+			if( lparam == hnd(0) )||( lparam == hnd(1) )||( lparam == hnd(2) )||( lparam == hnd(3) ){
+				if( HIWORD(wParam) == EN_CHANGE ){
+					DrawAllGraphic
+				}
+				return
+			}
+
+			//ランダムキャラ数が変更された
+			if( lparam == CharacterRandomNumberInputObjectHandle ){
+				if( HIWORD(wParam) == EN_CHANGE ){
+					if( CharacterRandomNumber > 6 ){
+						objenable NotSameCharacterCheckboxObjectID, 0
+					} else {
+						objenable NotSameCharacterCheckboxObjectID, 1
+					}
+				}
+				return
+			}
+
+		return
+
+	//----------------------------------------------------------------------------------------------
+	//= バージョン情報
+	//----------------------------------------------------------------------------------------------
+		*__Version
+			dialog ""+PROGRAM_NAME+"\nVersion "+PROGRAM_VERSION+"\n\n(C)2012 HIJIKI, HIJIKI SOFT"+"\n\nBuild "+__date__+" "+__time__, , ""+PROGRAM_NAME+" について"
 		return
