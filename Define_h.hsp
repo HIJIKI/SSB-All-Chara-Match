@@ -37,7 +37,10 @@
 	//----------------------------------------------------------------------------------------------
 	//= メニューバー項目ID
 	//----------------------------------------------------------------------------------------------
-		#enum MENU_ABOUT =0			//バージョン情報
+		#enum MENU_INITCHARASET=0	//キャラセットを初期化
+		#enum MENU_OPENCHARASET		//キャラセットを開く
+		#enum MENU_SAVECHARASET		//キャラセットを保存
+		#enum MENU_ABOUT			//SSB All Chara Match について
 		#enum MENU_ALWAYSONTOP		//常に最前面に表示
 		#enum MENU_EXIT				//終了
 
@@ -49,6 +52,7 @@
 
 		//ウィンドウID
 		#enum SCR_MAIN			=0					//メインウィンドウ
+		#enum SCR_CHARACTER_SELECT					//キャラ変更時選択ウィンドウ
 		#enum SCR_BG								//BG画像バッファ
 		#enum SCR_CHARACTER_ICON					//キャラアイコン画像バッファ
 		#enum SCR_NAME_PLATE						//ネームプレート画像バッファ
@@ -75,6 +79,8 @@
 	//----------------------------------------------------------------------------------------------
 		#define CHARACTER_ICON_SIZE_W	53			//キャラアイコンのサイズ横幅
 		#define CHARACTER_ICON_SIZE_H	51			//キャラアイコンのサイズ縦幅
+
+		#define CHARACTER_SELECT_WINDOW_BUTTON_H	32	//キャラセレクトウィンドウのボタン縦幅
 
 		#define NAME_PLATE_SIZE_W		180			//ネームプレートサイズ横幅
 		#define NAME_PLATE_SIZE_H		25			//ネームプレートサイズ縦幅

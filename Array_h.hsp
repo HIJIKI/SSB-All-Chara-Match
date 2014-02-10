@@ -21,6 +21,10 @@
 	NamePlateLayout(0, 1, 2) = WINDOW_SIZE_W-NAME_PLATE_SIZE_W, 0
 	NamePlateLayout(0, 1, 3) = WINDOW_SIZE_W-NAME_PLATE_SIZE_W, WINDOW_SIZE_H-NAME_PLATE_SIZE_H
 
+	//キャラクターセット配列
+	dim CharacterSet, 2, CHARACTER_NUMBER
+	gosub *__InitCharacterSet
+
 	//全キャラクターの名前
 	CharacterName = "LU", "MA", "DK", "LI", "SA", "FA", "NE", "YO", "KI", "FO", "PI", "PU"
 

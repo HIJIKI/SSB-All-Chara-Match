@@ -5,12 +5,26 @@
 //--------------------------------------------------------------------------------------------------
 
 	//----------------------------------------------------------------------------------------------
-	//= 終了処理
+	//= ×ボタンが押された時
 	//----------------------------------------------------------------------------------------------
 		*__End
-			dialog "終了しますか？", 2, ""+PROGRAM_NAME+" "+PROGRAM_VERSION
-			if(stat == 6){
-				end
+			//メインウィンドウ
+			if( wparam == SCR_MAIN ){
+				//多重表示防止
+				if( ExitCheckDialog == FALSE ){
+					ExitCheckDialog = TRUE
+					dialog "終了しますか？", 2, ""+PROGRAM_NAME+" "+PROGRAM_VERSION
+					if(stat == 6){
+						end
+					}
+					ExitCheckDialog = FALSE
+				}
+			}
+			//キャラクターセレクトウィンドウ
+			if( wparam == SCR_CHARACTER_SELECT ){
+				GselMem = ginfo_sel
+				gsel wparam, -1
+				gsel GselMem
 			}
 		return
 
@@ -19,28 +33,73 @@
 	//----------------------------------------------------------------------------------------------
 		*__OnClick
 			stick Key, 256+512
-			if Key = 256 {
-				if( mousex < WINDOW_SIZE_W )&&( mousey < WINDOW_SIZE_H ){
-					GetPixelOnID SCR_MOUSE_COLLISION, mousex, mousey
-					result = ginfo_r
-					//モード切り替え
-					if( result == 128 ){
-						GameModeFlag ^= 1
-						//入力欄 有効/無効化
-						objenable PlayerNameInputObjectID(2), GameModeFlag
-						objenable PlayerNameInputObjectID(3), GameModeFlag
-						//再描画
-						DrawAllGraphic
+			//メインウィンドウ
+			if( ginfo_act == SCR_MAIN ){
+				//左クリック
+				if Key = 256 {
+					if( mousex < WINDOW_SIZE_W )&&( mousey < WINDOW_SIZE_H ){
+						GetPixelOnID SCR_MOUSE_COLLISION, mousex, mousey
+						result = ginfo_r
+						//モード切り替え
+						if( result == 128 ){
+							GameModeFlag ^= 1
+							//入力欄 有効/無効化
+							objenable PlayerNameInputObjectID(2), GameModeFlag
+							objenable PlayerNameInputObjectID(3), GameModeFlag
+							//再描画
+							DrawAllGraphic
+						}
+						//キャラアイコンを切り替え
+						if( result == 255 ){
+							player = ginfo_g
+							id = ginfo_b
+							CharacterFlag(player, id) ^= 1
+							//再描画
+							DrawAllGraphic
+						}
 					}
-					//キャラアイコンを切り替え
-					if( result == 255 ){
-						player = ginfo_g
-						chara = ginfo_b
-						CharacterFlag(player, chara) ^= 1
-						//再描画
+				}
+				//右クリック
+				if Key = 512 {
+					if( mousex < WINDOW_SIZE_W )&&( mousey < WINDOW_SIZE_H ){
+						GetPixelOnID SCR_MOUSE_COLLISION, mousex, mousey
+						result = ginfo_r
+						//キャラ変更ウィンドウを表示
+						if( result == 255 ){
+							player = ginfo_g
+							id = ginfo_b
+							GselMem = ginfo_sel
+							gsel SCR_CHARACTER_SELECT, 2
+							width , , ginfo_mx, ginfo_my
+							gsel GselMem
+						}
+					}
+				}
+			}
+			//キャラクターセレクトウィンドウ
+			if( ginfo_act == SCR_CHARACTER_SELECT ){
+				//左クリック
+				if Key = 256 {
+					GselMem = ginfo_sel
+					gsel SCR_CHARACTER_SELECT
+					//有効範囲内であるか
+					if( mousex < CHARACTER_ICON_SIZE_W*3 )&&( mousey < CHARACTER_ICON_SIZE_H*4 ){
+						//マウス座標から選択キャラを算出
+						x = mousex/CHARACTER_ICON_SIZE_W: y = (mousey/CHARACTER_ICON_SIZE_H)*3
+						chara = x+y
+						//キャラ変更を反映
+						CharacterSet(player, id) = chara
+						//反映
+						gsel SCR_CHARACTER_SELECT, -1
+						gsel GselMem
 						DrawAllGraphic
 					}
 				}
+			} else {
+				//アクティブでなくなった場合非表示に
+				GselMem = ginfo_sel
+				gsel SCR_CHARACTER_SELECT, -1
+				gsel GselMem
 			}
 		return
 
@@ -104,6 +163,22 @@
 	//= キャラランダム
 	//----------------------------------------------------------------------------------------------
 		*__CharacterRandomSelect
+			//キャラセットが編集されている場合正常に動作しない旨を表示
+			flag = FALSE
+			for i, 0, 2, 1
+				for j, 0, CHARACTER_NUMBER, 1
+					if( CharacterSet(i, j) != j ){
+						flag = TRUE
+					}
+				next
+			next
+			if( flag == TRUE )&&( CharacterRandomCautionFlag == FALSE ){
+				dialog "キャラクターランダム機能は\nユーザーにより変更されたキャラセットを考慮していません。\nこのまま処理を続けますか？", 3, "キャラクターセットが変更されています"
+				if( stat = 7 ){
+					return
+				}
+				CharacterRandomCautionFlag = TRUE
+			}
 			//不正な数値の場合はリストア
 			CharacterRandomNumber = limit(CharacterRandomNumber, 1, CHARACTER_NUMBER)
 			objprm CharacterRandomNumberInputObjectID, CharacterRandomNumber
@@ -173,8 +248,10 @@
 					p += 2
 				}
 				for j, 0, CHARACTER_NUMBER
-					if( CharacterFlag(i, j) == FALSE ){
-						put += " "+CharacterName(j)
+					if( CharacterSet(i, j) != -1 ){
+						if( CharacterFlag(i, j) == FALSE ){
+							put += " "+CharacterName(CharacterSet(i, j))
+						}
 					}
 				next
 				if( i == 0 ){ put += "\n" }
@@ -196,12 +273,11 @@
 			addmenu SubmenuHandle(0), "キャラセットを初期化(&D)", MENU_INITCHARASET
 			addmenu SubmenuHandle(0), "キャラセットを開く(&O)", MENU_OPENCHARASET
 			addmenu SubmenuHandle(0), "キャラセットを保存(&S)", MENU_SAVECHARASET
-			addmenu SubmenuHandle(0), "", 0, $800
-			addmenu SubmenuHandle(0), "終了(&X)", MENU_EXIT
 
 			//[オプション]内項目
 			newmenu SubmenuHandle(1), 1
-			if( AlwaysOnTopFlag = TRUE ){
+			;常に最前面に表示
+			if( AlwaysOnTopFlag == TRUE ){
 				addmenu SubmenuHandle(1), "常に最前面に表示", MENU_ALWAYSONTOP, 0x8
 			} else {
 				addmenu SubmenuHandle(1), "常に最前面に表示", MENU_ALWAYSONTOP
@@ -209,7 +285,7 @@
 
 			//[ヘルプ]内項目
 			newmenu SubmenuHandle(2), 1
-			addmenu SubmenuHandle(2), ""+PROGRAM_NAME+" について", MENU_VERSION
+			addmenu SubmenuHandle(2), ""+PROGRAM_NAME+" について", MENU_ABOUT
 
 			//メニューバー
 			newmenu MenubarHandle, 0
@@ -228,6 +304,20 @@
 			//メニューバーが操作された
 			if( lparam == 0 ){
 				id = LOWORD(wparam)
+				//キャラセットを初期化
+				if( id == MENU_INITCHARASET ){
+					gosub *__InitCharacterSet
+					//再描画
+					DrawAllGraphic
+				}
+				//キャラセットを開く
+				if( id == MENU_OPENCHARASET ){
+					gosub *__OpenCharacterSet
+				}
+				//キャラセットを保存
+				if( id == MENU_SAVECHARASET ){
+					gosub *__SaveCharacterSet
+				}
 				//終了
 				if( id == MENU_EXIT ){
 					gosub *__End
@@ -244,7 +334,7 @@
 					gosub *__CreateMenubar
 				}
 				//バージョン情報
-				if( id == MENU_VERSION ){
+				if( id == MENU_ABOUT ){
 					gosub *__Version
 				}
 				return
@@ -271,6 +361,40 @@
 				return
 			}
 
+		return
+
+	//----------------------------------------------------------------------------------------------
+	//= キャラセットを初期化
+	//----------------------------------------------------------------------------------------------
+		*__InitCharacterSet
+			for i, 0, 2, 1
+				for j, 0, CHARACTER_NUMBER, 1
+					CharacterSet(i, j) = j
+				next
+			next
+		return
+
+	//----------------------------------------------------------------------------------------------
+	//= キャラセットを開く
+	//----------------------------------------------------------------------------------------------
+		*__OpenCharacterSet
+			dialog "sacmset", 16, "キャラセットファイル"
+			if( stat == 1 ){
+				bload ""+refstr, CharacterSet
+			}
+			//再描画
+			DrawAllGraphic
+		return
+
+	//----------------------------------------------------------------------------------------------
+	//= キャラセットを保存
+	//----------------------------------------------------------------------------------------------
+		*__SaveCharacterSet
+			dialog "sacmset", 17, "キャラセットファイル"
+			filename = getpath(refstr, 1)
+			if( stat == 1 ){
+				bsave ""+filename+".sacmset", CharacterSet
+			}
 		return
 
 	//----------------------------------------------------------------------------------------------
