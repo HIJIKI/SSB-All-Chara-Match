@@ -55,7 +55,9 @@
 		#enum SCR_CHARACTER_SELECT					//キャラ変更時選択ウィンドウ
 		#enum SCR_BG								//BG画像バッファ
 		#enum SCR_CHARACTER_ICON					//キャラアイコン画像バッファ
-		#enum SCR_NAME_PLATE						//ネームプレート画像バッファ
+		#enum SCR_NAME_PLATE_LEFT					//ネームプレート左画像バッファ
+		#enum SCR_NAME_PLATE_FILL					//ネームプレート塗り画像バッファ
+		#enum SCR_NAME_PLATE_RIGHT					//ネームプレート右画像バッファ
 		#enum SCR_MOUSE_COLLISION					//マウスの当たり判定用バッファ
 
 	//----------------------------------------------------------------------------------------------
@@ -63,16 +65,6 @@
 	//----------------------------------------------------------------------------------------------
 		#define CHARACTER_NUMBER	12				//キャラクターの総数
 		#define PLAYER_MAX			4				//プレイヤーの最大数
-
-		#define SYSTEM_FONT_NAME	"Impact"		//システムフォント名
-		#define SYSTEM_FONT_SIZE	18				//システムフォントサイズ
-		#define SYSTEM_FONT_STYLE	0				//システムフォントスタイル
-
-		#define NAME_PLATE_FONT_NAME	"ＭＳ Ｐゴシック"	//ネームプレートフォント名
-		#define NAME_PLATE_FONT_SIZE	16					//ネームプレートフォントサイズ
-		#define NAME_PLATE_FONT_STYLE	1					//ネームプレートフォントスタイル
-
-		#define MODECHANGE_CLICK_AREA_W	180			//モードチェンジをするためのクリック範囲横幅
 
 	//----------------------------------------------------------------------------------------------
 	//= 描画に関する定数
@@ -82,8 +74,16 @@
 
 		#define CHARACTER_SELECT_WINDOW_BUTTON_H	32	//キャラセレクトウィンドウのボタン縦幅
 
-		#define NAME_PLATE_SIZE_W		180			//ネームプレートサイズ横幅
-		#define NAME_PLATE_SIZE_H		25			//ネームプレートサイズ縦幅
+		#define SYSTEM_FONT_NAME	"Verdana"		//システムフォント名
+		#define SYSTEM_FONT_SIZE	18				//システムフォントサイズ
+		#define SYSTEM_FONT_STYLE	1				//システムフォントスタイル
+
+		#define NAME_PLATE_SIZE_MIN_W	8					//ネームプレートサイズ最小横幅
+		#define NAME_PLATE_SIZE_MAX_W	180					//ネームプレートサイズ最大横幅
+		#define NAME_PLATE_SIZE_H		25					//ネームプレートサイズ縦幅
+		#define NAME_PLATE_FONT_NAME	"ＭＳ Ｐゴシック"	//ネームプレートフォント名
+		#define NAME_PLATE_FONT_SIZE	16					//ネームプレートフォントサイズ
+		#define NAME_PLATE_FONT_STYLE	1					//ネームプレートフォントスタイル
 
 		#define BG_SIZE_W				64			//背景画像サイズ横幅
 		#define BG_SIZE_H				32			//背景画像サイズ縦幅

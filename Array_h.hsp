@@ -10,23 +10,12 @@
 	//各プレイヤーのプレイヤーネーム
 	sdim PlayerName, ,PLAYER_MAX
 
-	//ネームプレートのレイアウト配列(xy, mode, player)
-	dim NamePlateLayout, 2, 2, PLAYER_MAX
-	;1on1モード
-	NamePlateLayout(0, 0, 0) = 0, 0
-	NamePlateLayout(0, 0, 1) = WINDOW_SIZE_W-NAME_PLATE_SIZE_W, 0
-	;2on2モード
-	NamePlateLayout(0, 1, 0) = 0, 0
-	NamePlateLayout(0, 1, 1) = 0, WINDOW_SIZE_H-NAME_PLATE_SIZE_H
-	NamePlateLayout(0, 1, 2) = WINDOW_SIZE_W-NAME_PLATE_SIZE_W, 0
-	NamePlateLayout(0, 1, 3) = WINDOW_SIZE_W-NAME_PLATE_SIZE_W, WINDOW_SIZE_H-NAME_PLATE_SIZE_H
-
 	//キャラクターセット配列
 	dim CharacterSet, 2, CHARACTER_NUMBER
 	gosub *__InitCharacterSet
+	
+	//自由欄の文字
+	FreeSpaceText = PROGRAM_NAME+" "+PROGRAM_VERSION
 
 	//全キャラクターの名前
 	CharacterName = "LU", "MA", "DK", "LI", "SA", "FA", "NE", "YO", "KI", "FO", "PI", "PU"
-
-	//ゲームモードの名称
-	GameModeName = "1 on 1", "2 on 2"

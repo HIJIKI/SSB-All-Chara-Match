@@ -39,8 +39,9 @@
 	//----------------------------------------------------------------------------------------------
 	//= ネームプレート画像バッファ初期化
 	//----------------------------------------------------------------------------------------------
-		buffer SCR_NAME_PLATE
-		picload "data/img/NamePlate.gif"
+		buffer SCR_NAME_PLATE_LEFT	: picload "data/img/NamePlateLeft.gif"
+		buffer SCR_NAME_PLATE_FILL	: picload "data/img/NamePlateFill.gif"
+		buffer SCR_NAME_PLATE_RIGHT	: picload "data/img/NamePlateRight.gif"
 
 	//----------------------------------------------------------------------------------------------
 	//= マウス当たり判定用のバッファ初期化

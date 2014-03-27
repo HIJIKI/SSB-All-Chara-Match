@@ -40,15 +40,6 @@
 					if( mousex < WINDOW_SIZE_W )&&( mousey < WINDOW_SIZE_H ){
 						GetPixelOnID SCR_MOUSE_COLLISION, mousex, mousey
 						result = ginfo_r
-						//モード切り替え
-						if( result == 128 ){
-							GameModeFlag ^= 1
-							//入力欄 有効/無効化
-							objenable PlayerNameInputObjectID(2), GameModeFlag
-							objenable PlayerNameInputObjectID(3), GameModeFlag
-							//再描画
-							DrawAllGraphic
-						}
 						//キャラアイコンを切り替え
 						if( result == 255 ){
 							player = ginfo_g
@@ -123,8 +114,6 @@
 				PlayerNameInputObjectID(cnt) = stat
 				PlayerNameInputObjectHandle(cnt) = objinfo(stat, 2)
 			loop
-			objenable PlayerNameInputObjectID(2), GameModeFlag
-			objenable PlayerNameInputObjectID(3), GameModeFlag
 
 			//キャラランダム
 			x = (baseX+OBJECT_BOX_SIZE_W/2)-360/2
@@ -146,17 +135,19 @@
 			;chkbox
 			pos x+40+s+128+s, y
 			objsize 192, 24
-			chkbox "キャラかぶりなし(6キャラ以下の時)", NotSameCharacterFlag
+			chkbox "キャラかぶりなし", NotSameCharacterFlag
 			NotSameCharacterCheckboxObjectID = stat
 			;イベントが起きるため後回し
 			objprm CharacterRandomNumberInputObjectID, CHARACTER_NUMBER
 
-			//クリップボード
-			x = (baseX+OBJECT_BOX_SIZE_W/2)-144/2
+			//自由欄入力ボックス
+			x = (baseX+OBJECT_BOX_SIZE_W/2)-OBJECT_BOX_SIZE_W/2
 			y = ginfo_cy+s*4
-			pos x, y
-			objsize 144, 24
-			button gosub "クリップボードにコピー", *__SetClipBoard
+			pos x+s, y
+			objsize OBJECT_BOX_SIZE_W-s, 24
+			input FreeSpaceText, , , 64
+			FreeSpaceTextInputObjectID(cnt) = stat
+			FreeSpaceTextInputObjectHandle(cnt) = objinfo(stat, 2)
 		return
 
 	//----------------------------------------------------------------------------------------------
@@ -233,38 +224,6 @@
 		return
 
 	//----------------------------------------------------------------------------------------------
-	//= クリップボードにコピー
-	//----------------------------------------------------------------------------------------------
-		*__SetClipBoard
-			//データ整形
-			put = ""
-			p = 1
-			for i, 0, 2
-				if( GameModeFlag == 0 ){
-					put += "【"+p+"P】"
-					p++
-				} else {
-					put += "【"+p+"P&"+(p+1)+"P】"
-					p += 2
-				}
-				for j, 0, CHARACTER_NUMBER
-					if( CharacterSet(i, j) != -1 ){
-						if( CharacterFlag(i, j) == FALSE ){
-							put += " "+CharacterName(CharacterSet(i, j))
-						}
-					}
-				next
-				if( i == 0 ){ put += "\n" }
-			next
-			//テキスト描画
-			color 255,255,255
-			pos WINDOW_SIZE_W/2, WINDOW_SIZE_H-NAME_PLATE_SIZE_H-64
-			mes "コピーしました。"
-			//クリップボードにセット
-			clipset ""+put
-		return
-
-	//----------------------------------------------------------------------------------------------
 	//= メニューバーを作成
 	//----------------------------------------------------------------------------------------------
 		*__CreateMenubar
@@ -290,7 +249,7 @@
 			//メニューバー
 			newmenu MenubarHandle, 0
 			addmenu MenubarHandle, "ファイル(&F)", SubmenuHandle(0), $10
-			addmenu MenubarHandle, "オプション(&O)", SubmenuHandle(1), $10
+			addmenu MenubarHandle, "表示(&V)", SubmenuHandle(1), $10
 			addmenu MenubarHandle, "ヘルプ(&H)", SubmenuHandle(2), $10
 
 			//メニューバーをウィンドウに反映
@@ -343,6 +302,23 @@
 			//名前が変更された
 			dupptr hnd, varptr(PlayerNameInputObjectHandle), 4*4, 4
 			if( lparam == hnd(0) )||( lparam == hnd(1) )||( lparam == hnd(2) )||( lparam == hnd(3) ){
+				//参加プレイヤー人数を算出(空白は未参加)
+				dim PlayerEntry, PLAYER_MAX
+				PlayerNumber = 0
+				for i, 0, PLAYER_MAX, 1
+					if( PlayerName(i) != "" ){
+						PlayerEntry(i) = TRUE
+						PlayerNumber++
+					}
+				next
+				if( HIWORD(wParam) == EN_CHANGE ){
+					DrawAllGraphic
+				}
+				return
+			}
+
+			//自由欄が変更された
+			if( lparam == FreeSpaceTextInputObjectHandle ){
 				if( HIWORD(wParam) == EN_CHANGE ){
 					DrawAllGraphic
 				}

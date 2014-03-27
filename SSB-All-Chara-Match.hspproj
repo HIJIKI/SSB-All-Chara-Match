@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="Shift_JIS" standalone="no"?>
+<HSPProject Name="SSB-All-Chara-Match">
+  <Categories>
+    <Category Name="ソース ファイル" Key="Source Files" Filter=".hsp" />
+    <Category Name="ヘッダ ファイル" Key="Header Files" Filter=".as" />
+    <Category Name="リソース ファイル" Key="Resources" Filter=".bmp;.gif;.jpg;.jpeg;.ico;.png;.psd;.tga;.wav;.avi;.mid;.midi;.mp3;.wmv;.wma;.mpg;.mpeg" />
+  </Categories>
+  <Files>
+    <File Name="Module_h.hsp" Path="D:\github\SSB-All-Chara-Match\Module_h.hsp" Extension=".hsp" Type="SourceFile" CategoryKey="Source Files" Opened="False" UseFooty2EditControl="True" ShowFooty2EditControl="False" />
+    <File Name="Array_h.hsp" Path="D:\github\SSB-All-Chara-Match\Array_h.hsp" Extension=".hsp" Type="SourceFile" CategoryKey="Source Files" Opened="True" UseFooty2EditControl="True" ShowFooty2EditControl="True" />
+    <File Name="Init.hsp" Path="D:\github\SSB-All-Chara-Match\Init.hsp" Extension=".hsp" Type="SourceFile" CategoryKey="Source Files" Opened="True" UseFooty2EditControl="True" ShowFooty2EditControl="True" />
+    <File Name="Define_h.hsp" Path="D:\github\SSB-All-Chara-Match\Define_h.hsp" Extension=".hsp" Type="SourceFile" CategoryKey="Source Files" Opened="True" UseFooty2EditControl="True" ShowFooty2EditControl="True" />
+    <File Name="Subroutine.hsp" Path="D:\github\SSB-All-Chara-Match\Subroutine.hsp" Extension=".hsp" Type="SourceFile" CategoryKey="Source Files" Opened="True" UseFooty2EditControl="True" ShowFooty2EditControl="True" />
+    <File Name="Main.hsp" Path="D:\github\SSB-All-Chara-Match\Main.hsp" Extension=".hsp" Type="SourceFile" CategoryKey="Source Files" Opened="True" UseFooty2EditControl="True" ShowFooty2EditControl="True" />
+    <File Name="SsbAllCharMatch.hsp" Path="D:\github\SSB-All-Chara-Match\module\SsbAllCharMatch.hsp" Extension=".hsp" Type="SourceFile" CategoryKey="Source Files" Opened="True" UseFooty2EditControl="True" ShowFooty2EditControl="True" />
+  </Files>
+</HSPProject>
