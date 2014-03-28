@@ -5,6 +5,15 @@
 //--------------------------------------------------------------------------------------------------
 #module _SsbAllCharMatch_
 
+	//------------------------------------------------------------------------------------------
+	//= Exist関数
+	//------------------------------------------------------------------------------------------
+		#defcfunc ExistB str _path
+			ret = 0
+			exist _path
+			if( strsize != -1 ){ ret = 1 }
+		return ret
+
 	//----------------------------------------------------------------------------------------------
 	//= 指定したウィンドウID上でpgetする
 	//----------------------------------------------------------------------------------------------
@@ -23,93 +32,115 @@
 	//= 全要素を描画
 	//----------------------------------------------------------------------------------------------
 		#deffunc DrawAllGraphic
-			redraw 0
 
-			//背景描画
-			DrawBackground
+			//下描きウィンドウに下描き
+			gsel SCR_DRAFT@
+				//背景描画
+				DrawBackground
 
-			//キャラアイコン描画
-			posX = 0, WINDOW_SIZE_W@-CHARACTER_ICON_SIZE_W@*2
-			y = WINDOW_SIZE_H@/2-CHARACTER_ICON_SIZE_H@*CHARACTER_NUMBER@/4
-			posY = y, y
-			repeat 2
-				pos posX(cnt), posY(cnt)
-				DrawCharacterIcon cnt
-			loop
+				//キャラアイコン描画
+				posX = 0, WINDOW_SIZE_W@-CHARACTER_ICON_SIZE_W@*2
+				y = WINDOW_SIZE_H@/2-CHARACTER_ICON_SIZE_H@*CHARACTER_NUMBER@/4
+				posY = y, y
+				repeat 2
+					pos posX(cnt), posY(cnt)
+					DrawCharacterIcon cnt
+				loop
 
-			//ネームプレート描画
-			n = 0
-			repeat: i = cnt
-				//描画したプレート数が参加人数に達したらループを抜ける
-				if( n >= PlayerNumber@ ){
-					break
+				//ネームプレート描画
+				n = 0
+				repeat: i = cnt
+					//描画したプレート数が参加人数に達したらループを抜ける
+					if( n >= PlayerNumber@ ){
+						break
+					}
+					//参加していないプレイヤーのプレートはスキップ
+					if( PlayerEntry@(i) == TRUE@ ){
+						//参加人数ごとに場合分け
+						switch PlayerNumber@
+							//1人
+							case 1
+								if( n == 0 ):pos WINDOW_SIZE_W@/2-NAME_PLATE_SIZE_MAX_W@/2, 0
+								swbreak
+							case 2
+								if( n == 0 ):pos 0, 0
+								if( n == 1 ):pos WINDOW_SIZE_W@-NAME_PLATE_SIZE_MAX_W@, 0
+								swbreak
+							case 3
+								if( n == 0 ):pos 0, 0
+								if( n == 1 ):pos WINDOW_SIZE_W@/2-NAME_PLATE_SIZE_MAX_W@/2, 0
+								if( n == 2 ):pos WINDOW_SIZE_W@-NAME_PLATE_SIZE_MAX_W@, 0
+								swbreak
+							case 4
+								pos WINDOW_SIZE_W@/4*n, 0
+								swbreak
+						swend
+						DrawNamePlate i
+						n++
+					}
+				loop
+
+				//自由欄描画
+				w = FREESPACE_SIZE_W@
+				h = FREESPACE_SIZE_H@
+				x = WINDOW_SIZE_W@/2-w/2
+				y = WINDOW_SIZE_H@-h
+				ddim rect, 4			//alDrawTextPで使用
+				UnfilledSpaceW = w/2	//横幅超えのチェックのために使用する余白の幅
+
+				alCreateImage 0, w+UnfilledSpaceW, h
+				alColor 255, 255, 255
+				repeat
+					FontSize = FREESPACE_FONT_SIZE@-cnt
+					if( FontSize <= 0 ){
+						FontSize = 1
+						break
+					}
+					alFont FREESPACE_FONT_NAME@, FontSize, FREESPACE_FONT_STYLE@
+					alDrawTextP rect, 0, ""+FreeSpaceText@, 0, 0, w+UnfilledSpaceW, h, 1, 1
+					if( rect(2) < w ){
+						break
+					}
+				loop
+				alDrawText ""+FreeSpaceText@, 0, 0, w+UnfilledSpaceW, h, 1, 1
+				alCopyImageToScreen 0, SCR_DRAFT@, x-UnfilledSpaceW/2, y, w+UnfilledSpaceW, h
+
+				//オブジェクトボックス
+				w = OBJECT_BOX_SIZE_W@
+				h = OBJECT_BOX_SIZE_H@
+				x = WINDOW_SIZE_W@/2-w/2
+				y = WINDOW_SIZE_H@/2-h/2
+				;光源
+				syscolor 20:	boxf x-2, y-2, x+w+1, y+h+1
+				;影
+				syscolor 21:	boxf x, y, x+w+1, y+h+1
+				syscolor 16:	boxf x, y, x+w, y+h
+				;表面
+				syscolor 15:	boxf x, y, x+w-1, y+h-1
+				;プレイヤーネーム添字
+				if( CompactModeFlag@ == FALSE ){
+					baseX = OBJECT_BOX_POS_X@
+					baseY = OBJECT_BOX_POS_Y@
+					s = 4	//セパレータ
+					w = OBJECT_BOX_SIZE_W@/PLAYER_MAX@-s*2
+					h = 24
+					x = baseX+s*2+w/2-8
+					y = baseY+(OBJECT_BOX_SIZE_H@/2)-128/2
+					objsize w, h
+					color
+					font NAME_PLATE_FONT_NAME@, NAME_PLATE_FONT_SIZE@, NAME_PLATE_FONT_STYLE@
+					repeat PLAYER_MAX@
+						pos x+(w+s)*cnt, y
+						mes ""+(cnt+1)+"P"
+					loop
 				}
-				//参加していないプレイヤーのプレートはスキップ
-				if( PlayerEntry@(i) == TRUE@ ){
-					//参加人数ごとに場合分け
-					switch PlayerNumber@
-						//1人
-						case 1
-							if( n == 0 ):pos WINDOW_SIZE_W@/2-NAME_PLATE_SIZE_MAX_W@/2, 0
-							swbreak
-						case 2
-							if( n == 0 ):pos 0, 0
-							if( n == 1 ):pos WINDOW_SIZE_W@-NAME_PLATE_SIZE_MAX_W@, 0
-							swbreak
-						case 3
-							if( n == 0 ):pos 0, 0
-							if( n == 1 ):pos WINDOW_SIZE_W@/2-NAME_PLATE_SIZE_MAX_W@/2, 0
-							if( n == 2 ):pos WINDOW_SIZE_W@-NAME_PLATE_SIZE_MAX_W@, 0
-							swbreak
-						case 4
-							pos WINDOW_SIZE_W@/4*n, 0
-							swbreak
-					swend
-					DrawNamePlate i
-					n++
-				}
-			loop
 
-			//自由欄描画
-			w = WINDOW_SIZE_W@
-			h = NAME_PLATE_SIZE_H@
-			x = WINDOW_SIZE_W@/2-w/2
-			y = WINDOW_SIZE_H@-h
-			alCreateImage 0, w, h
-			alColor 255, 255, 255
-			alFont SYSTEM_FONT_NAME@, SYSTEM_FONT_SIZE@, SYSTEM_FONT_STYLE@
-			alDrawText ""+FreeSpaceText@, 0, 0, w, h, 1, 1
-			alCopyImageToScreen 0, SCR_MAIN@, x, y, w, h
+			//メインウィンドウにコピー
+			gsel SCR_MAIN@
+				pos 0, 0
+				gmode 0
+				gzoom ginfo_winx, ginfo_winy, SCR_DRAFT@, 0, 0, WINDOW_SIZE_W@, WINDOW_SIZE_H@, 1
 
-			//オブジェクト範囲
-			w = OBJECT_BOX_SIZE_W@
-			h = OBJECT_BOX_SIZE_H@
-			x = WINDOW_SIZE_W@/2-w/2
-			y = WINDOW_SIZE_H@/2-h/2
-			;光源
-			syscolor 20:	boxf x-2, y-2, x+w+1, y+h+1
-			;影
-			syscolor 21:	boxf x, y, x+w+1, y+h+1
-			syscolor 16:	boxf x, y, x+w, y+h
-			;表面
-			syscolor 15:	boxf x, y, x+w-1, y+h-1
-			;プレイヤーネーム添字
-			baseX = OBJECT_BOX_POS_X@
-			baseY = OBJECT_BOX_POS_Y@
-			s = 4	//セパレータ
-			w = OBJECT_BOX_SIZE_W@/PLAYER_MAX@-s*2
-			h = 24
-			x = baseX+s*2+w/2-8
-			y = baseY+(OBJECT_BOX_SIZE_H@/2)-128/2
-			objsize w, h
-			color
-			font NAME_PLATE_FONT_NAME@, NAME_PLATE_FONT_SIZE@, NAME_PLATE_FONT_STYLE@
-			repeat PLAYER_MAX@
-				pos x+(w+s)*cnt, y
-				mes ""+(cnt+1)+"P"
-			loop
-
-			redraw 1
 		return
 
 	//----------------------------------------------------------------------------------------------
@@ -213,14 +244,15 @@
 			y	= ginfo_cy
 			w	= limit(WINDOW_SIZE_W@/PlayerNumber@, NAME_PLATE_SIZE_MIN_W@, NAME_PLATE_SIZE_MAX_W@)
 			h	= NAME_PLATE_SIZE_H@
-			ddim rect, 4								//alDrawTextPで使用
-			UnfilledSpaceW = NAME_PLATE_FONT_SIZE@*4	//横幅超えのチェックのために使用する余白の幅
+			ddim rect, 4			//alDrawTextPで使用
+			UnfilledSpaceW = w/2	//横幅超えのチェックのために使用する余白の幅
 
 			//ベース描画
 			pos x, y
 			DrawNamePlateBase w, _p
 
 			alCreateImage 0, w+UnfilledSpaceW, h
+			alColor 255, 255, 255
 			//描画横幅がネームプレート横幅を超えていないかチェック、
 			//超えていればフォントサイズを1ずつ下げ再度チェック
 			repeat
@@ -229,16 +261,15 @@
 					FontSize = 1
 					break
 				}
-				alErase
-				alColor 255, 255, 255
 				alFont NAME_PLATE_FONT_NAME@, FontSize, NAME_PLATE_FONT_STYLE@
-				alDrawTextP rect, 1, ""+PlayerName@(_p), 0, 0, w+UnfilledSpaceW, h, 1, 1
+				alDrawTextP rect, 0, ""+PlayerName@(_p), 0, 0, w+UnfilledSpaceW, h, 1, 1
 				if( rect(2) < w ){
 					break
 				}
 			loop
-			//メインウィンドウに描画
-			alCopyImageToScreen 0, SCR_MAIN@, x-UnfilledSpaceW/2, y, w+UnfilledSpaceW, h
+			//下書きウィンドウに描画
+			alDrawText ""+PlayerName@(_p), 0, 0, w+UnfilledSpaceW, h, 1, 1
+			alCopyImageToScreen 0, SCR_DRAFT@, x-UnfilledSpaceW/2, y, w+UnfilledSpaceW, h
 		return
 
 	//----------------------------------------------------------------------------------------------

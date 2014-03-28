@@ -7,18 +7,10 @@
 	//----------------------------------------------------------------------------------------------
 	//= ×ボタンが押された時
 	//----------------------------------------------------------------------------------------------
-		*__End
+		*__OnExit
 			//メインウィンドウ
 			if( wparam == SCR_MAIN ){
-				//多重表示防止
-				if( ExitCheckDialog == FALSE ){
-					ExitCheckDialog = TRUE
-					dialog "終了しますか？", 2, ""+PROGRAM_NAME+" "+PROGRAM_VERSION
-					if(stat == 6){
-						end
-					}
-					ExitCheckDialog = FALSE
-				}
+				gosub *__CheckExit
 			}
 			//キャラクターセレクトウィンドウ
 			if( wparam == SCR_CHARACTER_SELECT ){
@@ -29,16 +21,61 @@
 		return
 
 	//----------------------------------------------------------------------------------------------
+	//= 終了確認
+	//----------------------------------------------------------------------------------------------
+		*__CheckExit
+			//多重表示防止
+			if( ExitCheckDialog == FALSE ){
+				ExitCheckDialog = TRUE
+				dialog "終了しますか？", 2, ""+PROGRAM_NAME+" "+PROGRAM_VERSION
+				if(stat == 6){
+					gosub *__DataSave
+					end
+				}
+				ExitCheckDialog = FALSE
+			}
+		return
+
+	//----------------------------------------------------------------------------------------------
+	//= データセーブ
+	//----------------------------------------------------------------------------------------------
+		*__DataSave
+			INIInit ""+INI_FILE_NAME
+			sec = "General"
+			INISet sec, "AlwaysOnTop", ""+AlwaysOnTopFlag
+			INISet sec, "CompactMode", ""+CompactModeFlag
+		return
+
+	//----------------------------------------------------------------------------------------------
+	//= データロード
+	//----------------------------------------------------------------------------------------------
+		*__DataLoad
+			INIInit ""+INI_FILE_NAME
+			sec = "General"
+			if( INIGet(sec, "AlwaysOnTop") )	{ AlwaysOnTopFlag = int(refstr) }		else { AlwaysOnTopFlag = FALSE }
+			if( INIGet(sec, "CompactMode") )	{ CompactModeFlag = int(refstr) }		else { CompactModeFlag = FALSE }
+		return
+
+	//----------------------------------------------------------------------------------------------
 	//= 画面がクリックされた時
 	//----------------------------------------------------------------------------------------------
 		*__OnClick
 			stick Key, 256+512
 			//メインウィンドウ
 			if( ginfo_act == SCR_MAIN ){
+				ClickX = mousex
+				ClickY = mousey
+				//コンパクトモードの場合の座標変換
+				if( CompactModeFlag == TRUE ){
+					tmpX = double(mousex)/double(COMPACTMODE_SIZE_W)*double(WINDOW_SIZE_W)
+					tmpY = double(mousey)/double(COMPACTMODE_SIZE_H)*double(WINDOW_SIZE_H)
+					ClickX = int(tmpX)
+					ClickY = int(tmpY)
+				}
 				//左クリック
 				if Key = 256 {
-					if( mousex < WINDOW_SIZE_W )&&( mousey < WINDOW_SIZE_H ){
-						GetPixelOnID SCR_MOUSE_COLLISION, mousex, mousey
+					if( ClickX < WINDOW_SIZE_W )&&( ClickY < WINDOW_SIZE_H ){
+						GetPixelOnID SCR_MOUSE_COLLISION, ClickX, ClickY
 						result = ginfo_r
 						//キャラアイコンを切り替え
 						if( result == 255 ){
@@ -52,8 +89,8 @@
 				}
 				//右クリック
 				if Key = 512 {
-					if( mousex < WINDOW_SIZE_W )&&( mousey < WINDOW_SIZE_H ){
-						GetPixelOnID SCR_MOUSE_COLLISION, mousex, mousey
+					if( ClickX < WINDOW_SIZE_W )&&( ClickY < WINDOW_SIZE_H ){
+						GetPixelOnID SCR_MOUSE_COLLISION, ClickX, ClickY
 						result = ginfo_r
 						//キャラ変更ウィンドウを表示
 						if( result == 255 ){
@@ -98,15 +135,32 @@
 	//= オブジェクト初期化
 	//----------------------------------------------------------------------------------------------
 		*__ObjectInit
-			baseX = OBJECT_BOX_POS_X
-			baseY = OBJECT_BOX_POS_Y
+			//オブジェクトを全削除
+			clrobj
+
+			//オブジェクトボックスの位置、サイズを設定
+			e = 8	//エッジ(padding)
 			s = 4	//セパレータ
+			;コンパクトモードを場合分け
+			if( CompactModeFlag == TRUE ){
+				e = 4
+				s = 2
+				baseX = OBJECT_BOX_POS_X/COMPACTMODE_RATE+e
+				baseY = OBJECT_BOX_POS_Y/COMPACTMODE_RATE+e
+				baseW = OBJECT_BOX_SIZE_W/COMPACTMODE_RATE-e*2
+				baseH = OBJECT_BOX_SIZE_H/COMPACTMODE_RATE-e*2
+			} else {
+				baseX = OBJECT_BOX_POS_X+e
+				baseY = OBJECT_BOX_POS_Y+e
+				baseW = OBJECT_BOX_SIZE_W-e*2
+				baseH = OBJECT_BOX_SIZE_H-e*2
+			}
 
 			//プレイヤーネーム入力欄
-			w = OBJECT_BOX_SIZE_W/PLAYER_MAX-s*2
+			w = (baseW-s*(PLAYER_MAX-1))/PLAYER_MAX
 			h = 24
-			x = baseX+s*2
-			y = baseY+(OBJECT_BOX_SIZE_H/2)-(128/2)+h
+			x = baseX
+			y = baseY+(baseH/2)-(h*3/2)-(e*2/2)		//全オブジェクトの高さで中央寄せ
 			objsize w, h
 			repeat PLAYER_MAX
 				pos x+(w+s)*cnt, y
@@ -116,11 +170,13 @@
 			loop
 
 			//キャラランダム
-			x = (baseX+OBJECT_BOX_SIZE_W/2)-360/2
-			y = ginfo_cy+s*4
 			;input
-			pos x+0, y
-			objsize 40, 24
+			x = baseX
+			y = ginfo_cy+e
+			w = (baseW-s*2)/10*2
+			h = 24
+			pos x, y
+			objsize w, h
 			CharacterRandomNumber = CHARACTER_NUMBER
 			input CharacterRandomNumber
 			CharacterRandomNumberInputObjectID = stat
@@ -129,23 +185,33 @@
 			hUpdown = objinfo(stat, 2)
 			sendmsg hUpdown, $465, , MAKELONG(12, 1)	;最小/最大値指定
 			;button
-			pos x+40+s, y
-			objsize 128, 24
+			x = ginfo_cx+w+s
+			y = y
+			w = (baseW-s*2)/10*4
+			h = 24
+			pos x, y
+			objsize w, h
 			button gosub "キャラランダム", *__CharacterRandomSelect
 			;chkbox
-			pos x+40+s+128+s, y
-			objsize 192, 24
+			x = ginfo_cx+w+s
+			y = y
+			w = (baseW-s*2)/10*4
+			h = 24
+			pos x, y
+			objsize w, h
 			chkbox "キャラかぶりなし", NotSameCharacterFlag
 			NotSameCharacterCheckboxObjectID = stat
-			;イベントが起きるため後回し
+			;OnCommandイベントが起きてしまうため、後回しにしている
 			objprm CharacterRandomNumberInputObjectID, CHARACTER_NUMBER
 
 			//自由欄入力ボックス
-			x = (baseX+OBJECT_BOX_SIZE_W/2)-OBJECT_BOX_SIZE_W/2
-			y = ginfo_cy+s*4
-			pos x+s, y
-			objsize OBJECT_BOX_SIZE_W-s, 24
-			input FreeSpaceText, , , 64
+			w = baseW
+			h = 24
+			x = baseX
+			y = ginfo_cy+e
+			pos x, y
+			objsize w, h
+			input FreeSpaceText, , , 128
 			FreeSpaceTextInputObjectID(cnt) = stat
 			FreeSpaceTextInputObjectHandle(cnt) = objinfo(stat, 2)
 		return
@@ -230,8 +296,12 @@
 			//[ファイル]内項目
 			newmenu SubmenuHandle(0), 1
 			addmenu SubmenuHandle(0), "キャラセットを初期化(&D)", MENU_INITCHARASET
-			addmenu SubmenuHandle(0), "キャラセットを開く(&O)", MENU_OPENCHARASET
-			addmenu SubmenuHandle(0), "キャラセットを保存(&S)", MENU_SAVECHARASET
+			addmenu SubmenuHandle(0), "キャラセットを開く(&O)...", MENU_OPENCHARASET
+			addmenu SubmenuHandle(0), "キャラセットを保存(&S)...", MENU_SAVECHARASET
+			addmenu SubMenuHandle(0), "", 0, $800
+			addmenu SubmenuHandle(0), "キャラ生存状態を初期化(&R)", MENU_INITCHARAFLAG
+			addmenu SubMenuHandle(0), "", 0, $800
+			addmenu SubmenuHandle(0), "終了(&X)", MENU_EXIT
 
 			//[オプション]内項目
 			newmenu SubmenuHandle(1), 1
@@ -241,10 +311,16 @@
 			} else {
 				addmenu SubmenuHandle(1), "常に最前面に表示", MENU_ALWAYSONTOP
 			}
+			;コンパクトモード切り替え
+			if( CompactModeFlag == TRUE ){
+				addmenu SubmenuHandle(1), "コンパクトモード", MENU_COMPACTMODE, 0x8
+			} else {
+				addmenu SubmenuHandle(1), "コンパクトモード", MENU_COMPACTMODE
+			}
 
 			//[ヘルプ]内項目
 			newmenu SubmenuHandle(2), 1
-			addmenu SubmenuHandle(2), ""+PROGRAM_NAME+" について", MENU_ABOUT
+			addmenu SubmenuHandle(2), "バージョン情報...", MENU_ABOUT
 
 			//メニューバー
 			newmenu MenubarHandle, 0
@@ -266,31 +342,36 @@
 				//キャラセットを初期化
 				if( id == MENU_INITCHARASET ){
 					gosub *__InitCharacterSet
-					//再描画
-					DrawAllGraphic
+					DrawAllGraphic					//再描画
 				}
 				//キャラセットを開く
 				if( id == MENU_OPENCHARASET ){
 					gosub *__OpenCharacterSet
+					DrawAllGraphic					//再描画
 				}
 				//キャラセットを保存
 				if( id == MENU_SAVECHARASET ){
 					gosub *__SaveCharacterSet
 				}
+				//キャラ生存状態を初期化
+				if( id == MENU_INITCHARAFLAG ){
+					gosub *__InitCharacterFlag
+					DrawAllGraphic					//再描画
+				}
 				//終了
 				if( id == MENU_EXIT ){
-					gosub *__End
+					gosub *__CheckExit
 				}
 				//常に最前面に表示
 				if( id == MENU_ALWAYSONTOP ){
-					AlwaysOnTopFlag ^= 1
-					if( AlwaysOnTopFlag == TRUE ){
-						gsel SCR_MAIN, 2
-					} else {
-						gsel SCR_MAIN, 1
-					}
-					//チェックマークを更新するためメニューバー項目を再構築
-					gosub *__CreateMenubar
+					gosub *__ToggleAlwaysOnTop
+					gosub *__CreateMenubar			//チェックマーク更新のため
+				}
+				//コンパクトモード切り替え
+				if( id == MENU_COMPACTMODE ){
+					gosub *__ToggleCompactMode
+					gosub *__CreateMenubar			//チェックマーク更新のため
+					DrawAllGraphic					//再描画
 				}
 				//バージョン情報
 				if( id == MENU_ABOUT ){
@@ -358,8 +439,6 @@
 			if( stat == 1 ){
 				bload ""+refstr, CharacterSet
 			}
-			//再描画
-			DrawAllGraphic
 		return
 
 	//----------------------------------------------------------------------------------------------
@@ -370,6 +449,42 @@
 			filename = getpath(refstr, 1)
 			if( stat == 1 ){
 				bsave ""+filename+".sacmset", CharacterSet
+			}
+		return
+
+	//----------------------------------------------------------------------------------------------
+	//= キャラ生存状態を初期化
+	//----------------------------------------------------------------------------------------------
+		*__InitCharacterFlag
+			for i, 0, 2, 1
+				for j, 0, CHARACTER_NUMBER, 1
+					CharacterFlag(i, j) = FALSE
+				next
+			next
+		return
+
+	//----------------------------------------------------------------------------------------------
+	//= コンパクトモード切り替え
+	//----------------------------------------------------------------------------------------------
+		*__ToggleCompactMode
+			CompactModeFlag ^= 1
+			if( CompactModeFlag == TRUE ){
+				width COMPACTMODE_SIZE_W, COMPACTMODE_SIZE_H+GetMenubarHeight()
+			} else {
+				width WINDOW_SIZE_W, WINDOW_SIZE_H+GetMenubarHeight()
+			}
+			gosub *__ObjectInit
+		return
+
+	//----------------------------------------------------------------------------------------------
+	//= 常に最前面に表示切り替え
+	//----------------------------------------------------------------------------------------------
+		*__ToggleAlwaysOnTop
+			AlwaysOnTopFlag ^= 1
+			if( AlwaysOnTopFlag == TRUE ){
+				gsel SCR_MAIN, 2
+			} else {
+				gsel SCR_MAIN, 1
 			}
 		return
 
