@@ -19,3 +19,6 @@
 
 	//全キャラクターの名前
 	CharacterName = "LU", "MA", "DK", "LI", "SA", "FA", "NE", "YO", "KI", "FO", "PI", "PU"
+
+	//iniファイルを保存するディレクトリ
+	IniFileDirectory = dir_cur

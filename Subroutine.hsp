@@ -40,7 +40,7 @@
 	//= データセーブ
 	//----------------------------------------------------------------------------------------------
 		*__DataSave
-			INIInit ""+INI_FILE_NAME
+			INIInit ""+IniFileDirectory+"\\"+INI_FILE_NAME
 			sec = "General"
 			INISet sec, "AlwaysOnTop", ""+AlwaysOnTopFlag
 			INISet sec, "CompactMode", ""+CompactModeFlag
@@ -50,7 +50,7 @@
 	//= データロード
 	//----------------------------------------------------------------------------------------------
 		*__DataLoad
-			INIInit ""+INI_FILE_NAME
+			INIInit ""+IniFileDirectory+"\\"+INI_FILE_NAME
 			sec = "General"
 			if( INIGet(sec, "AlwaysOnTop") )	{ AlwaysOnTopFlag = int(refstr) }		else { AlwaysOnTopFlag = FALSE }
 			if( INIGet(sec, "CompactMode") )	{ CompactModeFlag = int(refstr) }		else { CompactModeFlag = FALSE }

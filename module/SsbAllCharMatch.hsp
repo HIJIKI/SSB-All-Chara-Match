@@ -86,7 +86,7 @@
 				x = WINDOW_SIZE_W@/2-w/2
 				y = WINDOW_SIZE_H@-h
 				ddim rect, 4			//alDrawTextPで使用
-				UnfilledSpaceW = w/2	//横幅超えのチェックのために使用する余白の幅
+				UnfilledSpaceW = w		//横幅超えのチェックのために使用する余白の幅
 
 				alCreateImage 0, w+UnfilledSpaceW, h
 				alColor 255, 255, 255
@@ -245,7 +245,7 @@
 			w	= limit(WINDOW_SIZE_W@/PlayerNumber@, NAME_PLATE_SIZE_MIN_W@, NAME_PLATE_SIZE_MAX_W@)
 			h	= NAME_PLATE_SIZE_H@
 			ddim rect, 4			//alDrawTextPで使用
-			UnfilledSpaceW = w/2	//横幅超えのチェックのために使用する余白の幅
+			UnfilledSpaceW = w		//横幅超えのチェックのために使用する余白の幅
 
 			//ベース描画
 			pos x, y
