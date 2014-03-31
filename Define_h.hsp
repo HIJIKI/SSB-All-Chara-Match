@@ -41,6 +41,7 @@
 		#enum MENU_OPENCHARASET		//キャラセットを開く
 		#enum MENU_SAVECHARASET		//キャラセットを保存
 		#enum MENU_INITCHARAFLAG	//キャラ生存状態を初期化
+		#enum MENU_COPYCHARAFLAG	//クリップボードにコピー
 		#enum MENU_ABOUT			//SSB All Chara Match について
 		#enum MENU_ALWAYSONTOP		//常に最前面に表示
 		#enum MENU_COMPACTMODE		//コンパクトモード切り替え

@@ -290,6 +290,39 @@
 		return
 
 	//----------------------------------------------------------------------------------------------
+	//= クリップボードにコピー
+	//----------------------------------------------------------------------------------------------
+		*__CopyCharaFlag
+			//データ整形
+			put = ""
+			p = 1
+			for i, 0, 2
+				if( GameModeFlag == 0 ){
+					put += "【"+p+"P】"
+					p++
+				} else {
+					put += "【"+p+"P&"+(p+1)+"P】"
+					p += 2
+				}
+				for j, 0, CHARACTER_NUMBER
+					if( CharacterSet(i, j) != -1 ){
+						if( CharacterFlag(i, j) == FALSE ){
+							put += " "+CharacterName(CharacterSet(i, j))
+						}
+					}
+				next
+				if( i == 0 ){ put += "\n" }
+			next
+			//テキスト描画
+			color 255,255,255
+			pos WINDOW_SIZE_W/2, WINDOW_SIZE_H-NAME_PLATE_SIZE_H-64
+			mes "コピーしました。"
+			//クリップボードにセット
+			clipset ""+put
+		return
+
+
+	//----------------------------------------------------------------------------------------------
 	//= メニューバーを作成
 	//----------------------------------------------------------------------------------------------
 		*__CreateMenubar
@@ -300,6 +333,7 @@
 			addmenu SubmenuHandle(0), "キャラセットを保存(&S)...", MENU_SAVECHARASET
 			addmenu SubMenuHandle(0), "", 0, $800
 			addmenu SubmenuHandle(0), "キャラ生存状態を初期化(&R)", MENU_INITCHARAFLAG
+			addmenu SubmenuHandle(0), "クリップボードにコピー(&C)", MENU_COPYCHARAFLAG
 			addmenu SubMenuHandle(0), "", 0, $800
 			addmenu SubmenuHandle(0), "終了(&X)", MENU_EXIT
 
@@ -357,6 +391,10 @@
 				if( id == MENU_INITCHARAFLAG ){
 					gosub *__InitCharacterFlag
 					DrawAllGraphic					//再描画
+				}
+				//クリップボードにコピー
+				if( id == MENU_COPYCHARAFLAG ){
+					gosub *__CopyCharaFlag
 				}
 				//終了
 				if( id == MENU_EXIT ){
