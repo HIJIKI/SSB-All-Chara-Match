@@ -313,10 +313,19 @@
 				next
 				if( i == 0 ){ put += "\n" }
 			next
-			//テキスト描画
-			color 255,255,255
-			pos WINDOW_SIZE_W/2, WINDOW_SIZE_H-NAME_PLATE_SIZE_H-64
-			mes "コピーしました。"
+			//テキスト描画(ドラフトウィンドウ)
+			GselMem = ginfo_sel
+			gsel SCR_DRAFT
+				color 255,255,255
+				pos WINDOW_SIZE_W/2, OBJECT_BOX_POS_Y+OBJECT_BOX_SIZE_H+12
+				font SYSTEM_FONT_NAME, SYSTEM_FONT_SIZE, SYSTEM_FONT_STYLE
+				mes "コピーしました。"
+			//メインウィンドウにコピー
+			gsel SCR_MAIN
+				pos 0, 0
+				gmode 0
+				gzoom ginfo_winx, ginfo_winy, SCR_DRAFT, 0, 0, WINDOW_SIZE_W, WINDOW_SIZE_H, 1
+			gsel GselMem
 			//クリップボードにセット
 			clipset ""+put
 		return

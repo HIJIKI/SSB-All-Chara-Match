@@ -80,7 +80,7 @@
 					}
 				loop
 
-				//自由欄描画
+				//フリースペース描画
 				w = FREESPACE_SIZE_W@
 				h = FREESPACE_SIZE_H@
 				x = WINDOW_SIZE_W@/2-w/2
@@ -91,12 +91,12 @@
 				alCreateImage 0, w+UnfilledSpaceW, h
 				alColor 255, 255, 255
 				repeat
-					FontSize = FREESPACE_FONT_SIZE@-cnt
+					FontSize = SYSTEM_FONT_SIZE@-cnt
 					if( FontSize <= 0 ){
 						FontSize = 1
 						break
 					}
-					alFont FREESPACE_FONT_NAME@, FontSize, FREESPACE_FONT_STYLE@
+					alFont SYSTEM_FONT_NAME@, FontSize, SYSTEM_FONT_STYLE@
 					alDrawTextP rect, 0, ""+FreeSpaceText@, 0, 0, w+UnfilledSpaceW, h, 1, 1
 					if( rect(2) < w ){
 						break

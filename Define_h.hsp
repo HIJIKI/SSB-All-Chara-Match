@@ -84,9 +84,9 @@
 
 		#const FREESPACE_SIZE_W			WINDOW_SIZE_W		//フリースペース横幅
 		#const FREESPACE_SIZE_H			25					//　　　　　　　縦幅
-		#define FREESPACE_FONT_NAME		"Verdana"			//フリースペースフォント名
-		#define FREESPACE_FONT_SIZE		18					//フリースペースフォントサイズ
-		#define FREESPACE_FONT_STYLE	1					//フリースペースフォントスタイル
+		#define SYSTEM_FONT_NAME		"Tahoma"			//システムフォント名
+		#define SYSTEM_FONT_SIZE		18					//システムフォントサイズ
+		#define SYSTEM_FONT_STYLE		1					//システムフォントスタイル
 
 		#define NAME_PLATE_SIZE_MIN_W	8					//ネームプレート最小横幅
 		#define NAME_PLATE_SIZE_MAX_W	180					//　　　　　　　最大横幅
