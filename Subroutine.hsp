@@ -475,20 +475,24 @@
 				id = LOWORD(wparam)
 				//キャラセットを初期化
 				if( id == MENU_INITCHARASET ){
+					gosub *__ResetCharacterIconSelectFlag
 					gosub *__InitCharacterSet
 					DrawAllGraphic					//再描画
 				}
 				//キャラセットを開く
 				if( id == MENU_OPENCHARASET ){
+					gosub *__ResetCharacterIconSelectFlag
 					gosub *__OpenCharacterSet
 					DrawAllGraphic					//再描画
 				}
 				//キャラセットを保存
 				if( id == MENU_SAVECHARASET ){
+					gosub *__ResetCharacterIconSelectFlag
 					gosub *__SaveCharacterSet
 				}
 				//キャラ生存状態を初期化
 				if( id == MENU_INITCHARAFLAG ){
+					gosub *__ResetCharacterIconSelectFlag
 					gosub *__InitCharacterFlag
 					DrawAllGraphic					//再描画
 				}

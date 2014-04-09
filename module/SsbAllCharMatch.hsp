@@ -197,7 +197,7 @@
 				//ëIëèÛë‘ï`âÊ
 				if( CharacterIconSelectFlag@(_p, i) == TRUE@ ){
 					alCreateImage 0, w, h
-					alColor 0, 0, 255, 128
+					alColor 51, 153, 255, 128
 					alFillRect 0, 0, w, h
 					alCopyImageToScreen 0, ginfo_sel, x, y, w, h
 				}
