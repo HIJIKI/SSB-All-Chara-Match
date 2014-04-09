@@ -4,8 +4,11 @@
 //	配列 / 変数を初期化
 //--------------------------------------------------------------------------------------------------
 
-	//各プレイヤーのキャラクター生存状態
+	//両チームのキャラクター生存状態
 	dim CharacterFlag, 2, CHARACTER_NUMBER
+
+	//両チームのキャラクターアイコン選択状態
+	dim CharacterIconSelectFlag, 2, CHARACTER_NUMBER
 
 	//各プレイヤーのプレイヤーネーム
 	sdim PlayerName, ,PLAYER_MAX

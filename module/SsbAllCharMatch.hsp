@@ -183,7 +183,6 @@
 			w	= CHARACTER_ICON_SIZE_W@
 			h	= CHARACTER_ICON_SIZE_H@
 			n	= CHARACTER_NUMBER@
-
 			gmode 0, w, h
 			for i, 0, n
 				//左列へ移行
@@ -191,9 +190,17 @@
 					x -= w
 					y -= h*(n/2)
 				}
+				//アイコン描画
 				f = CharacterFlag@(_p, i)
 				pos x, y
 				gcopy id, w*f, h*CharacterSet@(_p, i)
+				//選択状態描画
+				if( CharacterIconSelectFlag@(_p, i) == TRUE@ ){
+					alCreateImage 0, w, h
+					alColor 0, 0, 255, 128
+					alFillRect 0, 0, w, h
+					alCopyImageToScreen 0, ginfo_sel, x, y, w, h
+				}
 				//マウス当たり判定用バッファへ描画
 				GselMem = ginfo_sel
 				gsel SCR_MOUSE_COLLISION@
@@ -232,7 +239,14 @@
 	//= キャラクターセレクトウィンドウ > なし ボタン
 	//----------------------------------------------------------------------------------------------
 		*__NonButtonOnCharacterSelectWindow
-			CharacterSet@(player@, id@) = -1
+			for i, 0, 2, 1
+				for j, 0, CHARACTER_NUMBER@, 1
+					if( CharacterIconSelectFlag@(i, j) == TRUE@ ){
+						CharacterSet@(i, j) = -1
+					}
+				next
+			next
+			gosub *__ResetCharacterIconSelectFlag@
 			DrawAllGraphic
 			gosub *__CloseCharacterSelectWindow
 		return

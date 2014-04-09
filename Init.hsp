@@ -78,7 +78,9 @@
 	//----------------------------------------------------------------------------------------------
 		screen SCR_MAIN, WINDOW_SIZE_W, WINDOW_SIZE_H+GetMenubarHeight(), screen_fixedsize, WindowPositionX, WindowPositionY
 		title ""+PROGRAM_NAME+" "+PROGRAM_VERSION
+		//メニューバー/オブジェクトを作成
 		gosub *__CreateMenubar
+		gosub *__ObjectInit
 		//常に最前面に表示を適用
 		if( AlwaysOnTopFlag == TRUE ){
 			gsel SCR_MAIN, 2
@@ -90,18 +92,11 @@
 		//ウィンドウが画面からはみ出してる場合に調整する
 		x = ginfo_winx
 		y = ginfo_winy+GetMenubarHeight()
-		if( ginfo_wx1 <= -1 ){
-			width x, y, 0
-		}
-		if( ginfo_wx2 >= ginfo_dispx ){
-			width x, y, ginfo_dispx-ginfo_sizex
-		}
-		if( ginfo_wy1 <= -1 ){
-			width x, y, , 0
-		}
-		if( ginfo_wy2 >= ginfo_dispy ){
-			width x, y, , ginfo_dispy-ginfo_sizey
-		}
-
+		if( ginfo_wx1 <= -1 ){ width x, y, 0 }
+		if( ginfo_wx2 >= ginfo_dispx ){ width x, y, ginfo_dispx-ginfo_sizex }
+		if( ginfo_wy1 <= -1 ){ width x, y, , 0 }
+		if( ginfo_wy2 >= ginfo_dispy ){	width x, y, , ginfo_dispy-ginfo_sizey }
 		//オンコマンド指定
 		oncmd gosub *__WM_COMMAND, WM_COMMAND
+		//初回描画
+		DrawAllGraphic

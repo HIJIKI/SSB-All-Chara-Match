@@ -85,7 +85,7 @@
 	//= 画面がクリックされた時
 	//----------------------------------------------------------------------------------------------
 		*__OnClick
-			stick Key, 256+512
+			stick Key, 64+256+512
 			//メインウィンドウ
 			if( ginfo_act == SCR_MAIN ){
 				ClickX = mousex
@@ -98,22 +98,28 @@
 					ClickY = int(tmpY)
 				}
 				//左クリック
-				if Key & 256 {
+				if( Key & 256 ){
 					if( ClickX < WINDOW_SIZE_W )&&( ClickY < WINDOW_SIZE_H ){
 						GetPixelOnID SCR_MOUSE_COLLISION, ClickX, ClickY
 						result = ginfo_r
-						//キャラアイコンを切り替え
 						if( result == 255 ){
 							player = ginfo_g
 							id = ginfo_b
-							CharacterFlag(player, id) ^= 1
+							if( Key & 64 ){
+								//キャラアイコン選択を切り替え
+								CharacterIconSelectFlag(player, id) ^= 1
+							} else {
+								//キャラ生存状態を切り替え
+								gosub *__ResetCharacterIconSelectFlag
+								CharacterFlag(player, id) ^= 1
+							}
 							//再描画
 							DrawAllGraphic
 						}
 					}
 				}
 				//右クリック
-				if Key & 512 {
+				if( Key & 512 ){
 					if( ClickX < WINDOW_SIZE_W )&&( ClickY < WINDOW_SIZE_H ){
 						GetPixelOnID SCR_MOUSE_COLLISION, ClickX, ClickY
 						result = ginfo_r
@@ -122,6 +128,11 @@
 							player = ginfo_g
 							id = ginfo_b
 							GselMem = ginfo_sel
+							if( CharacterIconSelectFlag(player, id) == FALSE ){
+								gosub *__ResetCharacterIconSelectFlag
+								CharacterIconSelectFlag(player, id) = TRUE
+								DrawAllGraphic
+							}
 							gsel SCR_CHARACTER_SELECT, 2
 							//画面内におさまるように調整
 							x = ginfo_mx
@@ -143,7 +154,7 @@
 			//キャラクターセレクトウィンドウ
 			if( ginfo_act == SCR_CHARACTER_SELECT ){
 				//左クリック
-				if Key & 256 {
+				if( Key & 256 ){
 					GselMem = ginfo_sel
 					gsel SCR_CHARACTER_SELECT
 					//有効範囲内であるか
@@ -152,14 +163,32 @@
 						x = mousex/CHARACTER_ICON_SIZE_W: y = (mousey/CHARACTER_ICON_SIZE_H)*3
 						chara = x+y
 						//キャラ変更を反映
-						CharacterSet(player, id) = chara
-						//反映
+						for i, 0, 2, 1
+							for j, 0, CHARACTER_NUMBER, 1
+								if( CharacterIconSelectFlag(i, j) == TRUE ){
+									CharacterSet(i, j) = chara
+								}
+							next
+						next
+						//後処理
+						gosub *__ResetCharacterIconSelectFlag
 						gsel SCR_CHARACTER_SELECT, -1
 						gsel GselMem
 						DrawAllGraphic
 					}
 				}
 			}
+		return
+
+	//----------------------------------------------------------------------------------------------
+	//= キャラクターアイコン選択状況をリセット
+	//----------------------------------------------------------------------------------------------
+		*__ResetCharacterIconSelectFlag
+			for i, 0, 2, 1
+				for j, 0, CHARACTER_NUMBER, 1
+					CharacterIconSelectFlag(i, j) = FALSE
+				next
+			next
 		return
 
 	//----------------------------------------------------------------------------------------------
@@ -251,6 +280,7 @@
 	//= キャラランダム
 	//----------------------------------------------------------------------------------------------
 		*__CharacterRandomSelect
+			gosub *__ResetCharacterIconSelectFlag
 			//キャラセットが編集されている場合正常に動作しない旨を表示
 			flag = FALSE
 			for i, 0, 2, 1
