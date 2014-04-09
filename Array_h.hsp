@@ -22,3 +22,6 @@
 
 	//iniファイルを保存するディレクトリ
 	IniFileDirectory = dir_cur
+
+	//プレイヤー名を保存する/しないのフラグ
+	dim PlayerNameSaveFlag, PLAYER_MAX

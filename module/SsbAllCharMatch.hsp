@@ -47,6 +47,16 @@
 					DrawCharacterIcon cnt
 				loop
 
+				//参加プレイヤー人数を算出(空白は未参加)
+				dim PlayerEntry@, PLAYER_MAX@
+				PlayerNumber@ = 0
+				for i, 0, PLAYER_MAX@, 1
+					if( PlayerName@(i) != "" ){
+						PlayerEntry@(i) = TRUE@
+						PlayerNumber@++
+					}
+				next
+
 				//ネームプレート描画
 				n = 0
 				repeat: i = cnt
@@ -226,7 +236,7 @@
 			DrawAllGraphic
 			gosub *__CloseCharacterSelectWindow
 		return
-	
+
 	//----------------------------------------------------------------------------------------------
 	//= キャラクターセレクトウィンドウ > キャンセル ボタン
 	//----------------------------------------------------------------------------------------------

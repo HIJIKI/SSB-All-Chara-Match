@@ -15,11 +15,6 @@
 		onexit gosub *__OnExit
 
 	//----------------------------------------------------------------------------------------------
-	//= オンコマンド
-	//----------------------------------------------------------------------------------------------
-		oncmd gosub *__OnCommand, WM_COMMAND
-
-	//----------------------------------------------------------------------------------------------
 	//= ランダムテーブル初期化
 	//----------------------------------------------------------------------------------------------
 		randomize
@@ -67,9 +62,11 @@
 	//----------------------------------------------------------------------------------------------
 	//= キャラクターセレクトウィンドウ初期化
 	//----------------------------------------------------------------------------------------------
-		screen SCR_CHARACTER_SELECT, CHARACTER_ICON_SIZE_W*3, CHARACTER_ICON_SIZE_H*4+CHARACTER_SELECT_WINDOW_BUTTON_H, 2+4+8
+		screen SCR_CHARACTER_SELECT, CHARACTER_SELECT_WINDOW_SIZE_W, CHARACTER_SELECT_WINDOW_SIZE_H, 2+4+8
 		title "キャラクター変更"
 		InitCharacterSelectWindow
+		//オンコマンド指定
+		oncmd gosub *__WM_ACTIVATE, WM_ACTIVATE
 
 	//----------------------------------------------------------------------------------------------
 	//= 下書きウィンドウ初期化
@@ -79,7 +76,7 @@
 	//----------------------------------------------------------------------------------------------
 	//= メインウィンドウ初期化
 	//----------------------------------------------------------------------------------------------
-		screen SCR_MAIN, WINDOW_SIZE_W, WINDOW_SIZE_H+GetMenubarHeight(), screen_fixedsize
+		screen SCR_MAIN, WINDOW_SIZE_W, WINDOW_SIZE_H+GetMenubarHeight(), screen_fixedsize, WindowPositionX, WindowPositionY
 		title ""+PROGRAM_NAME+" "+PROGRAM_VERSION
 		gosub *__CreateMenubar
 		//常に最前面に表示を適用
@@ -90,3 +87,21 @@
 		if( CompactModeFlag == TRUE ){
 			width COMPACTMODE_SIZE_W, COMPACTMODE_SIZE_H+GetMenubarHeight()
 		}
+		//ウィンドウが画面からはみ出してる場合に調整する
+		x = ginfo_winx
+		y = ginfo_winy+GetMenubarHeight()
+		if( ginfo_wx1 <= -1 ){
+			width x, y, 0
+		}
+		if( ginfo_wx2 >= ginfo_dispx ){
+			width x, y, ginfo_dispx-ginfo_sizex
+		}
+		if( ginfo_wy1 <= -1 ){
+			width x, y, , 0
+		}
+		if( ginfo_wy2 >= ginfo_dispy ){
+			width x, y, , ginfo_dispy-ginfo_sizey
+		}
+
+		//オンコマンド指定
+		oncmd gosub *__WM_COMMAND, WM_COMMAND

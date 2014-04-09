@@ -41,9 +41,21 @@
 	//----------------------------------------------------------------------------------------------
 		*__DataSave
 			INIInit ""+IniFileDirectory+"\\"+INI_FILE_NAME
+			//General
 			sec = "General"
 			INISet sec, "AlwaysOnTop", ""+AlwaysOnTopFlag
 			INISet sec, "CompactMode", ""+CompactModeFlag
+			//Window
+			gsel SCR_MAIN	//念のためメインウィンドウを選択
+			sec = "Window"
+			INISet sec, "PositionX", ""+ginfo_wx1
+			INISet sec, "PositionY", ""+ginfo_wy1
+			//PlayerName
+			sec = "PlayerName"
+			repeat PLAYER_MAX
+				INISet sec, "FlagPlayer"+(cnt+1), ""+PlayerNameSaveFlag(cnt)
+				INISet sec, "NamePlayer"+(cnt+1), ""+PlayerName(cnt)
+			loop
 		return
 
 	//----------------------------------------------------------------------------------------------
@@ -51,9 +63,22 @@
 	//----------------------------------------------------------------------------------------------
 		*__DataLoad
 			INIInit ""+IniFileDirectory+"\\"+INI_FILE_NAME
+			//General
 			sec = "General"
 			if( INIGet(sec, "AlwaysOnTop") )	{ AlwaysOnTopFlag = int(refstr) }		else { AlwaysOnTopFlag = FALSE }
 			if( INIGet(sec, "CompactMode") )	{ CompactModeFlag = int(refstr) }		else { CompactModeFlag = FALSE }
+			//Window
+			sec = "Window"
+			if( INIGet(sec, "PositionX") )		{ WindowPositionX = int(refstr) }		else { WindowPositionX = 0 }
+			if( INIGet(sec, "PositionY") )		{ WindowPositionY = int(refstr) }		else { WindowPositionY = 0 }
+			//PlayerName
+			sec = "PlayerName"
+			repeat PLAYER_MAX
+				if( INIGet(sec, "FlagPlayer"+(cnt+1)) )	{ PlayerNameSaveFlag(cnt) = int(refstr) } else { PlayerNameSaveFlag(cnt) = 0 }
+				if( PlayerNameSaveFlag(cnt) == TRUE ){
+					if( INIGet(sec, "NamePlayer"+(cnt+1)) )	{ PlayerName(cnt) = refstr } else { PlayerName(cnt) = "" }
+				}
+			loop
 		return
 
 	//----------------------------------------------------------------------------------------------
@@ -73,7 +98,7 @@
 					ClickY = int(tmpY)
 				}
 				//左クリック
-				if Key = 256 {
+				if Key & 256 {
 					if( ClickX < WINDOW_SIZE_W )&&( ClickY < WINDOW_SIZE_H ){
 						GetPixelOnID SCR_MOUSE_COLLISION, ClickX, ClickY
 						result = ginfo_r
@@ -88,7 +113,7 @@
 					}
 				}
 				//右クリック
-				if Key = 512 {
+				if Key & 512 {
 					if( ClickX < WINDOW_SIZE_W )&&( ClickY < WINDOW_SIZE_H ){
 						GetPixelOnID SCR_MOUSE_COLLISION, ClickX, ClickY
 						result = ginfo_r
@@ -98,7 +123,18 @@
 							id = ginfo_b
 							GselMem = ginfo_sel
 							gsel SCR_CHARACTER_SELECT, 2
-							width , , ginfo_mx, ginfo_my
+							//画面内におさまるように調整
+							x = ginfo_mx
+							y = ginfo_my
+							w = ginfo_sizex
+							h = ginfo_sizey
+							if( x+w > ginfo_dispx ){
+								x -= x+w-ginfo_dispx
+							}
+							if( y+h > ginfo_dispy ){
+								y -= y+h-ginfo_dispy
+							}
+							width , , x, y
 							gsel GselMem
 						}
 					}
@@ -107,7 +143,7 @@
 			//キャラクターセレクトウィンドウ
 			if( ginfo_act == SCR_CHARACTER_SELECT ){
 				//左クリック
-				if Key = 256 {
+				if Key & 256 {
 					GselMem = ginfo_sel
 					gsel SCR_CHARACTER_SELECT
 					//有効範囲内であるか
@@ -123,11 +159,6 @@
 						DrawAllGraphic
 					}
 				}
-			} else {
-				//アクティブでなくなった場合非表示に
-				GselMem = ginfo_sel
-				gsel SCR_CHARACTER_SELECT, -1
-				gsel GselMem
 			}
 		return
 
@@ -335,50 +366,80 @@
 	//= メニューバーを作成
 	//----------------------------------------------------------------------------------------------
 		*__CreateMenubar
+			//ハンドル配列添字用
+			i=0:	file = i
+			i++:	view = i:	i++:	namesave = i
+			i++:	help = i
+		
 			//[ファイル]内項目
-			newmenu SubmenuHandle(0), 1
-			addmenu SubmenuHandle(0), "キャラセットを初期化(&D)", MENU_INITCHARASET
-			addmenu SubmenuHandle(0), "キャラセットを開く(&O)...", MENU_OPENCHARASET
-			addmenu SubmenuHandle(0), "キャラセットを保存(&S)...", MENU_SAVECHARASET
-			addmenu SubMenuHandle(0), "", 0, $800
-			addmenu SubmenuHandle(0), "キャラ生存状態を初期化(&R)", MENU_INITCHARAFLAG
-			addmenu SubmenuHandle(0), "クリップボードにコピー(&C)", MENU_COPYCHARAFLAG
-			addmenu SubMenuHandle(0), "", 0, $800
-			addmenu SubmenuHandle(0), "終了(&X)", MENU_EXIT
+			newmenu SubmenuHandle(file), 1
+			addmenu SubmenuHandle(file), "キャラセットを初期化(&D)", MENU_INITCHARASET
+			addmenu SubmenuHandle(file), "キャラセットを開く(&O)...", MENU_OPENCHARASET
+			addmenu SubmenuHandle(file), "キャラセットを保存(&S)...", MENU_SAVECHARASET
+			addmenu SubmenuHandle(file), "", 0, $800
+			addmenu SubmenuHandle(file), "キャラ生存状態を初期化(&R)", MENU_INITCHARAFLAG
+			addmenu SubmenuHandle(file), "クリップボードにコピー(&C)", MENU_COPYCHARAFLAG
+			addmenu SubmenuHandle(file), "", 0, $800
+			addmenu SubmenuHandle(file), "終了(&X)", MENU_EXIT
 
-			//[オプション]内項目
-			newmenu SubmenuHandle(1), 1
+			//[表示]>プレイヤー名を記憶
+			newmenu SubmenuHandle(namesave), 1
+			if( PlayerNameSaveFlag(0) == TRUE ){
+				addmenu SubmenuHandle(namesave), "1P", MENU_NAMESAVE_P1, 0x8
+			} else {
+				addmenu SubmenuHandle(namesave), "1P", MENU_NAMESAVE_P1
+			}
+			if( PlayerNameSaveFlag(1) == TRUE ){
+				addmenu SubmenuHandle(namesave), "2P", MENU_NAMESAVE_P2, 0x8
+			} else {
+				addmenu SubmenuHandle(namesave), "2P", MENU_NAMESAVE_P2
+			}
+			if( PlayerNameSaveFlag(2) == TRUE ){
+				addmenu SubmenuHandle(namesave), "3P", MENU_NAMESAVE_P3, 0x8
+			} else {
+				addmenu SubmenuHandle(namesave), "3P", MENU_NAMESAVE_P3
+			}
+			if( PlayerNameSaveFlag(3) == TRUE ){
+				addmenu SubmenuHandle(namesave), "4P", MENU_NAMESAVE_P4, 0x8
+			} else {
+				addmenu SubmenuHandle(namesave), "4P", MENU_NAMESAVE_P4
+			}
+
+			//[表示]内項目
+			newmenu SubmenuHandle(view), 1
 			;常に最前面に表示
 			if( AlwaysOnTopFlag == TRUE ){
-				addmenu SubmenuHandle(1), "常に最前面に表示", MENU_ALWAYSONTOP, 0x8
+				addmenu SubmenuHandle(view), "常に最前面に表示", MENU_ALWAYSONTOP, 0x8
 			} else {
-				addmenu SubmenuHandle(1), "常に最前面に表示", MENU_ALWAYSONTOP
+				addmenu SubmenuHandle(view), "常に最前面に表示", MENU_ALWAYSONTOP
 			}
 			;コンパクトモード切り替え
 			if( CompactModeFlag == TRUE ){
-				addmenu SubmenuHandle(1), "コンパクトモード", MENU_COMPACTMODE, 0x8
+				addmenu SubmenuHandle(view), "コンパクトモード", MENU_COMPACTMODE, 0x8
 			} else {
-				addmenu SubmenuHandle(1), "コンパクトモード", MENU_COMPACTMODE
+				addmenu SubmenuHandle(view), "コンパクトモード", MENU_COMPACTMODE
 			}
+			;プレイヤー名を記憶
+			addmenu SubmenuHandle(view), "プレイヤー名を記憶", SubmenuHandle(namesave), $010
 
 			//[ヘルプ]内項目
-			newmenu SubmenuHandle(2), 1
-			addmenu SubmenuHandle(2), "バージョン情報...", MENU_ABOUT
+			newmenu SubmenuHandle(help), 1
+			addmenu SubmenuHandle(help), "バージョン情報...", MENU_ABOUT
 
 			//メニューバー
 			newmenu MenubarHandle, 0
-			addmenu MenubarHandle, "ファイル(&F)", SubmenuHandle(0), $10
-			addmenu MenubarHandle, "表示(&V)", SubmenuHandle(1), $10
-			addmenu MenubarHandle, "ヘルプ(&H)", SubmenuHandle(2), $10
+			addmenu MenubarHandle, "ファイル(&F)",	SubmenuHandle(file),	$10
+			addmenu MenubarHandle, "表示(&V)",		SubmenuHandle(view),	$10
+			addmenu MenubarHandle, "ヘルプ(&H)",	SubmenuHandle(help),	$10
 
 			//メニューバーをウィンドウに反映
 			applymenu MenubarHandle
 		return
 
 	//----------------------------------------------------------------------------------------------
-	//= オンコマンド
+	//= メインウィンドウのメニューアイテムを選択した時
 	//----------------------------------------------------------------------------------------------
-		*__OnCommand
+		*__WM_COMMAND
 			//メニューバーが操作された
 			if( lparam == 0 ){
 				id = LOWORD(wparam)
@@ -424,21 +485,32 @@
 				if( id == MENU_ABOUT ){
 					gosub *__Version
 				}
+				//プレイヤー名を記憶:1P
+				if( id == MENU_NAMESAVE_P1 ){
+					PlayerNameSaveFlag(0) ^= 1
+					gosub *__CreateMenubar			//チェックマーク更新のため
+				}
+				//プレイヤー名を記憶:2P
+				if( id == MENU_NAMESAVE_P2 ){
+					PlayerNameSaveFlag(1) ^= 1
+					gosub *__CreateMenubar			//チェックマーク更新のため
+				}
+				//プレイヤー名を記憶:3P
+				if( id == MENU_NAMESAVE_P3 ){
+					PlayerNameSaveFlag(2) ^= 1
+					gosub *__CreateMenubar			//チェックマーク更新のため
+				}
+				//プレイヤー名を記憶:4P
+				if( id == MENU_NAMESAVE_P4 ){
+					PlayerNameSaveFlag(3) ^= 1
+					gosub *__CreateMenubar			//チェックマーク更新のため
+				}
 				return
 			}
 
 			//名前が変更された
 			dupptr hnd, varptr(PlayerNameInputObjectHandle), 4*4, 4
 			if( lparam == hnd(0) )||( lparam == hnd(1) )||( lparam == hnd(2) )||( lparam == hnd(3) ){
-				//参加プレイヤー人数を算出(空白は未参加)
-				dim PlayerEntry, PLAYER_MAX
-				PlayerNumber = 0
-				for i, 0, PLAYER_MAX, 1
-					if( PlayerName(i) != "" ){
-						PlayerEntry(i) = TRUE
-						PlayerNumber++
-					}
-				next
 				if( HIWORD(wParam) == EN_CHANGE ){
 					DrawAllGraphic
 				}
@@ -465,6 +537,18 @@
 				return
 			}
 
+		return
+
+	//----------------------------------------------------------------------------------------------
+	//= キャラクターセレクトウィンドウのアクティブ状態が切り替わった時
+	//----------------------------------------------------------------------------------------------
+		*__WM_ACTIVATE
+			//アクティブでなくなった場合非表示に
+			f = LOWORD(wParam)
+			if(f == FALSE){
+				gsel SCR_CHARACTER_SELECT, -1
+				gsel SCR_MAIN
+			}
 		return
 
 	//----------------------------------------------------------------------------------------------

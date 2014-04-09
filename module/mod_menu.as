@@ -19,7 +19,7 @@
 #cfunc global GetSystemMetrics	"GetSystemMetrics"		int
 
 ; ウィンドウメッセージを定義
-#const global WM_CLOSE                          0x0010
+//#const global WM_CLOSE                          0x0010
 //#const global WM_COMMAND                        0x0111
 
 #module "menumod"

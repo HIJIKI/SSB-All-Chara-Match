@@ -15,7 +15,6 @@
 	//----------------------------------------------------------------------------------------------
 	//= オブジェクト内容変更検知用
 	//----------------------------------------------------------------------------------------------
-		#define WM_COMMAND      $00000111
 		#define EN_CHANGE       $00000300
 		#define CBN_SELCHANGE   $00000001
 		#define LBN_SELCHANGE   $00000001
@@ -45,6 +44,10 @@
 		#enum MENU_ABOUT			//SSB All Chara Match について
 		#enum MENU_ALWAYSONTOP		//常に最前面に表示
 		#enum MENU_COMPACTMODE		//コンパクトモード切り替え
+		#enum MENU_NAMESAVE_P1		//1Pプレイヤー名記憶切り替え
+		#enum MENU_NAMESAVE_P2		//2Pプレイヤー名記憶切り替え
+		#enum MENU_NAMESAVE_P3		//3Pプレイヤー名記憶切り替え
+		#enum MENU_NAMESAVE_P4		//4Pプレイヤー名記憶切り替え
 		#enum MENU_EXIT				//終了
 
 	//----------------------------------------------------------------------------------------------
@@ -80,7 +83,10 @@
 		#define CHARACTER_ICON_SIZE_W	53					//キャラアイコンのサイズ横幅
 		#define CHARACTER_ICON_SIZE_H	51					//キャラアイコンのサイズ縦幅
 
-		#define CHARACTER_SELECT_WINDOW_BUTTON_H	32		//キャラセレクトウィンドウのボタン縦幅
+		//キャラセレクトウィンドウ
+		#define CHARACTER_SELECT_WINDOW_BUTTON_H	32
+		#const CHARACTER_SELECT_WINDOW_SIZE_W		CHARACTER_ICON_SIZE_W*3
+		#const CHARACTER_SELECT_WINDOW_SIZE_H		CHARACTER_ICON_SIZE_H*4+CHARACTER_SELECT_WINDOW_BUTTON_H
 
 		#const FREESPACE_SIZE_W			WINDOW_SIZE_W		//フリースペース横幅
 		#const FREESPACE_SIZE_H			25					//　　　　　　　縦幅
