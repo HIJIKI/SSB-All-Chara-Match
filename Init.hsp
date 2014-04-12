@@ -76,27 +76,23 @@
 	//----------------------------------------------------------------------------------------------
 	//= メインウィンドウ初期化
 	//----------------------------------------------------------------------------------------------
-		screen SCR_MAIN, WINDOW_SIZE_W, WINDOW_SIZE_H+GetMenubarHeight(), screen_fixedsize, WindowPositionX, WindowPositionY
+		//ウィンドウを非表示状態で作成
+		screen SCR_MAIN, WINDOW_SIZE_W, WINDOW_SIZE_H+GetMenubarHeight(), screen_fixedsize|screen_hide, WindowPositionX, WindowPositionY
 		title ""+PROGRAM_NAME+" "+PROGRAM_VERSION
-		//メニューバー/オブジェクトを作成
-		gosub *__CreateMenubar
-		gosub *__ObjectInit
-		//常に最前面に表示を適用
-		if( AlwaysOnTopFlag == TRUE ){
-			gsel SCR_MAIN, 2
-		}
 		//コンパクトモードを適用
 		if( CompactModeFlag == TRUE ){
 			width COMPACTMODE_SIZE_W, COMPACTMODE_SIZE_H+GetMenubarHeight()
 		}
-		//ウィンドウが画面からはみ出してる場合に調整する
-		x = ginfo_winx
-		y = ginfo_winy+GetMenubarHeight()
-		if( ginfo_wx1 <= -1 ){ width x, y, 0 }
-		if( ginfo_wx2 >= ginfo_dispx ){ width x, y, ginfo_dispx-ginfo_sizex }
-		if( ginfo_wy1 <= -1 ){ width x, y, , 0 }
-		if( ginfo_wy2 >= ginfo_dispy ){	width x, y, , ginfo_dispy-ginfo_sizey }
+		//メニューバー/オブジェクトを作成
+		gosub *__CreateMenubar
+		gosub *__ObjectInit
 		//オンコマンド指定
 		oncmd gosub *__WM_COMMAND, WM_COMMAND
 		//初回描画
 		DrawAllGraphic
+		//ウィンドウを表示させる/常に最前面に表示を適用
+		if( AlwaysOnTopFlag == TRUE ){
+			gsel SCR_MAIN, 2
+		} else {
+			gsel SCR_MAIN, 1
+		}

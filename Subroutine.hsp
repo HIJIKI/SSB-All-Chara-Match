@@ -100,6 +100,12 @@
 				//左クリック
 				if( Key & 256 ){
 					if( ClickX < WINDOW_SIZE_W )&&( ClickY < WINDOW_SIZE_H ){
+						RedrawFlag = FALSE
+						//単一クリックであればキャラ選択状態を解除
+						if( (Key & 64) == FALSE ){
+							gosub *__ResetCharacterIconSelectFlag
+							RedrawFlag = TRUE
+						}
 						GetPixelOnID SCR_MOUSE_COLLISION, ClickX, ClickY
 						result = ginfo_r
 						if( result == 255 ){
@@ -110,10 +116,12 @@
 								CharacterIconSelectFlag(player, id) ^= 1
 							} else {
 								//キャラ生存状態を切り替え
-								gosub *__ResetCharacterIconSelectFlag
 								CharacterFlag(player, id) ^= 1
 							}
-							//再描画
+							RedrawFlag = TRUE
+						}
+						//描画すべきであれば描画
+						if( RedrawFlag == TRUE ){
 							DrawAllGraphic
 						}
 					}
@@ -133,18 +141,15 @@
 								CharacterIconSelectFlag(player, id) = TRUE
 								DrawAllGraphic
 							}
+							//表示位置調整(縦軸をメインウィンドウの中心にあわせる)
+							gsel SCR_MAIN
+							mY = ginfo_wy1
+							mH = ginfo_sizey
 							gsel SCR_CHARACTER_SELECT, 2
-							//画面内におさまるように調整
-							x = ginfo_mx
-							y = ginfo_my
-							w = ginfo_sizex
-							h = ginfo_sizey
-							if( x+w > ginfo_dispx ){
-								x -= x+w-ginfo_dispx
-							}
-							if( y+h > ginfo_dispy ){
-								y -= y+h-ginfo_dispy
-							}
+							sW = ginfo_sizex
+							sH = ginfo_sizey
+							x = ginfo_mx-(sW*player)
+							y = (mY+mH/2)-sH/2
 							width , , x, y
 							gsel GselMem
 						}
