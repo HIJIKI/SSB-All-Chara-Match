@@ -85,7 +85,14 @@
 	//= 画面がクリックされた時
 	//----------------------------------------------------------------------------------------------
 		*__OnClick
-			stick Key, 64+256+512
+			getkey LeftClick,	1
+			getkey RightClick,	2
+			getkey MiddleClick,	4
+			getkey CtrlKey,		17
+			//複数クリックの同時押しであった場合無効に
+			if( LeftClick+RightClick+MiddleClick > 1 ){
+				return
+			}
 			//メインウィンドウ
 			if( ginfo_act == SCR_MAIN ){
 				ClickX = mousex
@@ -97,12 +104,18 @@
 					ClickX = int(tmpX)
 					ClickY = int(tmpY)
 				}
+				//ミドルクリックをCtrl+左クリックとして扱う
+				if( MiddleClick == TRUE ){
+					LeftClick	= TRUE
+					CtrlKey		= TRUE
+					MiddleClick	= FALSE
+				}
 				//左クリック
-				if( Key & 256 ){
+				if( LeftClick == TRUE ){
 					if( ClickX < WINDOW_SIZE_W )&&( ClickY < WINDOW_SIZE_H ){
 						RedrawFlag = FALSE
 						//単一クリックであればキャラ選択状態を解除
-						if( (Key & 64) == FALSE ){
+						if( CtrlKey == FALSE ){
 							gosub *__ResetCharacterIconSelectFlag
 							RedrawFlag = TRUE
 						}
@@ -111,7 +124,7 @@
 						if( result == 255 ){
 							player = ginfo_g
 							id = ginfo_b
-							if( Key & 64 ){
+							if( CtrlKey == TRUE ){
 								//キャラアイコン選択を切り替え
 								CharacterIconSelectFlag(player, id) ^= 1
 							} else {
@@ -127,7 +140,7 @@
 					}
 				}
 				//右クリック
-				if( Key & 512 ){
+				if( RightClick == TRUE ){
 					if( ClickX < WINDOW_SIZE_W )&&( ClickY < WINDOW_SIZE_H ){
 						GetPixelOnID SCR_MOUSE_COLLISION, ClickX, ClickY
 						result = ginfo_r
@@ -159,7 +172,7 @@
 			//キャラクターセレクトウィンドウ
 			if( ginfo_act == SCR_CHARACTER_SELECT ){
 				//左クリック
-				if( Key & 256 ){
+				if( LeftClick == TRUE ){
 					GselMem = ginfo_sel
 					gsel SCR_CHARACTER_SELECT
 					//有効範囲内であるか
@@ -472,7 +485,7 @@
 		return
 
 	//----------------------------------------------------------------------------------------------
-	//= メインウィンドウのメニューアイテムを選択した時
+	//= メインウィンドウのオブジェクトコマンド
 	//----------------------------------------------------------------------------------------------
 		*__WM_COMMAND
 			//メニューバーが操作された
