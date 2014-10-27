@@ -347,7 +347,7 @@
 					f = FALSE
 					if( CharacterFlag(1, tmp) == TRUE ){
 						//ƒLƒƒƒ‰‚©‚Ô‚è‚È‚µ‚©‚Ç‚¤‚©
-						if( CharacterRandomNumber <= 6 )&&( NotSameCharacterFlag == TRUE ){
+						if( CharacterRandomNumber <= CHARACTER_NUMBER/2 )&&( NotSameCharacterFlag == TRUE ){
 							if( CharacterFlag(0, tmp) == TRUE ){
 								f = TRUE
 							}
